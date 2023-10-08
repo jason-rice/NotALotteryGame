@@ -33,7 +33,7 @@ namespace webapi.Controllers
                 var t1 = new LottoTimes()
                 {
                     Id = 1,
-                    DateAndTime = now.AddMinutes(1),
+                    DateAndTime = now.AddHours(1),
                 };
                 await dbContext.LottoTimes.AddAsync(t1);
                 var t2 = new LottoTimes()
