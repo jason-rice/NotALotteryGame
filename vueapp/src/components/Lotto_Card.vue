@@ -7,15 +7,11 @@
       <div class="card-body cards-color-scheme body-border">
         <div><p class="card-text">{{ timeLeft }}</p></div>
         <br />
-        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" /></div>
+        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" :disabled="(timeLeft === 'EXPIRED') || addressNumber === null" /></div>
         <br />
-        <div><button type="button" class="btn btn-success" @click="BuyTickets()" :disabled="(timeLeft === 'EXPIRED')">Buy Ticket(s)</button></div>
+        <div><button type="button" class="btn btn-success" @click="BuyTickets()" :disabled="(timeLeft === 'EXPIRED') || addressNumber === null">Buy Ticket(s)</button></div>
         <br />
         <div><p class="card-text">Number of tickets bought: {{ ticketsBought }}</p></div>
-        <!-- <br />
-        <div><button type="button" class="btn btn-success" @click="Claim()" :disabled="true">Claim</button></div>
-        <br />
-        <div><button type="button" class="btn btn-success" @click="RunLotto()" :disabled="!(timeLeft === 'EXPIRED')">Run Lotto</button></div> -->
       </div>
       <div class="card-footer cards-color-scheme border-white">
         Last five winners:
@@ -57,9 +53,7 @@ export default {
 
       var x = setInterval(function () {
         if (val !== null && val !== undefined) {
-          let a = new Date(
-            new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
-          ).getTime();
+          let a = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })).getTime();
 
           var distance = vm.nextLotteryTime - a;
 
@@ -100,13 +94,12 @@ export default {
         .catch((error) => console.error(error));
     },
     async BuyTickets(txHash) {
-      console.log(txHash);
-
       if (this.ticketNum > 0 && this.ticketNum <= 10000) {
         let payload = {
           AccountNum: this.addressNumber,
           TicketNum: this.ticketNum,
           Type: this.lottoType.id,
+          TxHash: txHash,
         };
 
         await fetch("api/NotALottery/BuyTickets", {
@@ -116,49 +109,74 @@ export default {
         })
         .then((r) => r.json())
         .then((json) => {
-          this.ticketsBought = json;
+          if (json.status !== 400) {
+              this.ticketsBought = json;
+          } else {
+              this.ticketsBought = 0;
+          }
           return;
         });
       }
-    },
-    async Claim(val) {
-      console.log("Claim" + val);
     },
     async RunLotto() {
       let vm = this;
       let payload = { Type: this.lottoType.id };
 
-      await fetch("api/NotALottery/RunLotto", {
-          method: "POST",
-          body: JSON.stringify(payload),
-          headers: { "Content-type": "application/json; charset=UTF-8" },
-        })
-        .then((r) => r.json())
-        .then((json) => {
-          let output = json;
-          if (output.winner !== null) {
-            vm.winnersList.push(output.winner)
-          }
-          vm.$emit("refreshLotto");
-          return;
-        });
+      // await fetch("api/NotALottery/RunLotto", {
+      //       method: "POST",
+      //       body: JSON.stringify(payload),
+      //       headers: { "Content-type": "application/json; charset=UTF-8" },
+      //     })
+      //     .then((r) => r.json())
+      //     .then((json) => {
+      //       console.log(json);
+      //       vm.ticketsBought = 0;
+      //       vm.$emit("refreshLotto");
+      //       return;
+      //     });
 
-      // if (this.addressNumber === '0x1a552c4ddec9e9fd9103c1174c23ed270e8eab4d') {
-      //   await fetch("api/NotALottery/RunLotto", {
-      //     method: "POST",
-      //     body: JSON.stringify(payload),
-      //     headers: { "Content-type": "application/json; charset=UTF-8" },
-      //   })
-      //   .then((r) => r.json())
-      //   .then((json) => {
-      //     let output = json;
-      //     if (output.winner !== null) {
-      //       vm.winnersList.push(output.winner)
-      //     }
+      // setTimeout(() => {
+      //   if (this.addressNumber === "0xa6ab2919659ba1f6a492d813b945ac76bf5b090e") {
+      //     fetch("api/NotALottery/RunLotto", {
+      //       method: "POST",
+      //       body: JSON.stringify(payload),
+      //       headers: { "Content-type": "application/json; charset=UTF-8" },
+      //     })
+      //     .then((r) => r.json())
+      //     .then((json) => {
+      //       console.log(json);
+      //       vm.ticketsBought = 0;
+      //       vm.$emit("refreshLotto");
+      //       return;
+      //     });
+      //   } else {
+      //     vm.ticketsBought = 0;
       //     vm.$emit("refreshLotto");
-      //     return;
-      //   });
-      // }
+      //   }
+      // }, 5000)
+
+      
+      if (this.addressNumber === "0xa6ab2919659ba1f6a492d813b945ac76bf5b090e") {
+        setTimeout(() => {
+          fetch("api/NotALottery/RunLotto", {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: { "Content-type": "application/json; charset=UTF-8" },
+          })
+          .then((r) => r.json())
+          .then((json) => {
+            console.log(json);
+            vm.ticketsBought = 0;
+            vm.$emit("refreshLotto");
+            return;
+          });
+        }, 2000)
+        } else {
+          setTimeout(() => {
+            vm.ticketsBought = 0;
+            vm.$emit("refreshLotto");
+          }, 5000)
+        }
     },
   },
   watch: {
@@ -169,6 +187,12 @@ export default {
         this.ticketNum = 10000;
       }
     },
+    timeEnd() {
+      this.BeginCountdown(this.timeEnd);
+    },
+    ticketsBoughtIncoming() {
+      this.ticketsBought = this.ticketsBoughtIncoming;
+    }
   },
   mounted() {
     this.InitializePage();

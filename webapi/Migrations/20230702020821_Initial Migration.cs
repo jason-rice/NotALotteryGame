@@ -32,7 +32,7 @@ namespace webapi.Migrations
                 name: "TwoHourLottery",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint IDENTITY", nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 },
                 constraints: table =>
@@ -44,7 +44,7 @@ namespace webapi.Migrations
                 name: "SixHourLottery",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint IDENTITY", nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 },
                 constraints: table =>
@@ -56,7 +56,7 @@ namespace webapi.Migrations
                 name: "TwelveHourLottery",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint IDENTITY", nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 },
                 constraints: table =>
@@ -68,7 +68,7 @@ namespace webapi.Migrations
                 name: "DailyLottery",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint IDENTITY", nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 },
                 constraints: table =>
@@ -80,7 +80,7 @@ namespace webapi.Migrations
                 name: "WeeklyLottery",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint IDENTITY", nullable: false),
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 },
                 constraints: table =>
@@ -108,6 +108,7 @@ namespace webapi.Migrations
                     AddressId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                     AmountPulse = table.Column<long>(type: "bigint", nullable: false),
                     LottoType = table.Column<int>(type: "int", nullable: false),
+                    DateAndTime = table.Column<DateTime>(type: "datetime", nullable: false),
                 },
                 constraints: table =>
                 {

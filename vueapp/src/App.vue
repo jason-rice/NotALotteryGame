@@ -27,6 +27,15 @@
                 @refreshLotto="RefreshLotto()"
             />
         </div>
+        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="accountNum === null && lottoTypes !== null && lottoTimes !== null && ticketsBought === null">
+            <Lotto  
+                v-for="(t, index) in lottoTypes" :key="t"
+                :addressNumber="null" 
+                :lottoType="lottoTypes[index]" 
+                :timeEnd="lottoTimes[index].dateAndTime"
+                :ticketsBoughtIncoming="0"
+            />
+        </div>
         
     </div>
 </template>
@@ -58,7 +67,6 @@ export default {
                 { id: 6, type: 'Weekly Lotto' },
             ],
             ticketsBought: null,
-            // winnings: null,
             winningsTotalPulse: null,
         };
     },
@@ -70,27 +78,37 @@ export default {
     InitializePage() {
         this.GetLottoTimes();
     },
+    async GetWinnings(val) {
+        let payload = { AccountNum: val };
+
+        await fetch('api/NotALottery/GetWinnings', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.winningsTotalPulse = json;
+            } else {
+                this.winningsTotalPulse = null;
+            }
+            return;
+        });
+    },
     async GetLottoTimes() {
-        this.lottoTimes = null;
+        // this.lottoTimes = null;
         await fetch('api/NotALottery/GetLottoTimes', {
             method: 'Get',
             headers: { 'Content-type': 'application/json; charset=UTF-8' }
         })
         .then(r => r.json())
         .then(json => {
-            this.lottoTimes = json;
-            return;
-        });
-    },
-    async GetWinnerLists() {
-        this.winnerLists = null;
-        await fetch('api/NotALottery/GetWinnerLists', {
-            method: 'Get',
-            headers: { 'Content-type': 'application/json; charset=UTF-8' }
-        })
-        .then(r => r.json())
-        .then(json => {
-            this.lottoTimes = json;
+            if (json.status !== 400) {
+                this.lottoTimes = json;
+            } else {
+                this.lottoTimes = null;
+            }
             return;
         });
     },
@@ -104,21 +122,29 @@ export default {
         })
         .then(r => r.json())
         .then(json => {
-            this.ticketsBought = json;
+            if (json.status !== 400) {
+                this.ticketsBought = json;
+            } else {
+                this.ticketsBought = null;
+            }
             return;
         });
     },
-    async GetWinnings(val) {
+    async GetWinnerLists(val) {
         let payload = { AccountNum: val };
 
-        await fetch('api/NotALottery/GetWinnings', {
+        await fetch('api/NotALottery/GetWinnerLists', {
             method: 'POST',
             body: JSON.stringify(payload),
             headers: { 'Content-type': 'application/json; charset=UTF-8' }
         })
         .then(r => r.json())
         .then(json => {
-            this.winningsTotalPulse = json;
+            if (json.status !== 400) {
+                this.winnerLists = json;
+            } else {
+                this.winnerLists = null;
+            }
             return;
         });
     },
@@ -137,7 +163,7 @@ export default {
         this.accountNum = account;
     },
     async ClaimWinnings() {
-        let payload = { AccountNum: ethereum.selectedAddress };
+        let payload = { AccountNum: this.accountNum };
 
         await fetch('api/NotALottery/ClaimWinnings', {
             method: 'POST',
@@ -146,29 +172,30 @@ export default {
         })
         .then(r => r.json())
         .then(json => {
-            this.winningsTotalPulse = json;
+            if (json.status !== 400) {
+                this.winningsTotalPulse = json;
+            } else {
+                this.winningsTotalPulse = null;
+            }
             return;
         });
     },
     async RefreshLotto() {
-        this.GetWinnings(ethereum.selectedAddress);
-        this.lottoTimes = null;
-        this.winnerLists = null;
+        this.GetWinnings(this.accountNum);
+        // this.lottoTimes = null;
+        // this.winnerLists = null;
         this.GetLottoTimes();
-        // this.GetWinnerLists();
+        this.GetTicketsBought(this.accountNum);
+        this.GetWinnerLists(this.accountNum);
     },
   },
   watch: {
-    ticketNum() {
-        if (this.ticketNum === "") {
-            this.ticketNum = 0;
-        }
-    },
     eth: function () {
+        let vm = this;
         setTimeout(() => {
-            this.accountNum = ethereum.selectedAddress;
-            this.GetTicketsBought(ethereum.selectedAddress);
-            this.GetWinnings(ethereum.selectedAddress);
+            this.accountNum = vm.accountNum;
+            this.GetTicketsBought(vm.accountNum);
+            this.GetWinnings(vm.accountNum);
         }, 1000)
         // this.connected = window.ethereum._state.accounts.length;
         // this.connected = window.ethereum.request({method: 'eth_accounts'});
@@ -179,7 +206,6 @@ export default {
 
     setTimeout(() => {
         this.accountNum = ethereum.selectedAddress;
-        console.log(ethereum.selectedAddress);
     }, 1000)
 
 

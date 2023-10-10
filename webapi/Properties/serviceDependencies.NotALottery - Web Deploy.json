@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "apis1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/NotALotteryApiManagementService/apis/NotALotteryAPIManagement",
+      "type": "apis.azure"
+    },
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/NotALottery/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsNotALotteryApiConnectio_46229A4918",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/jasonricesoftwareportfoliodbserver/databases/NotALotteryDb",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:NotALotteryApiConnectionString",
+      "dynamicId": null
+    }
+  }
+}

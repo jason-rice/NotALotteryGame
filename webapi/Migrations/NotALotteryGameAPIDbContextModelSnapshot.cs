@@ -43,9 +43,9 @@ namespace webapi.Migrations
 
             modelBuilder.Entity("webapi.Models.TwoHourLottery", b =>
             {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                b.Property<long>("Id")
+                        .IsRequired()
+                        .HasColumnType("bigint");
 
                 b.Property<string>("AddressId")
                     .IsRequired()
@@ -58,9 +58,9 @@ namespace webapi.Migrations
 
             modelBuilder.Entity("webapi.Models.SixHourLottery", b =>
             {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                b.Property<long>("Id")
+                        .IsRequired()
+                        .HasColumnType("bigint");
 
                 b.Property<string>("AddressId")
                     .IsRequired()
@@ -73,9 +73,9 @@ namespace webapi.Migrations
 
             modelBuilder.Entity("webapi.Models.TwelveHourLottery", b =>
             {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                b.Property<long>("Id")
+                        .IsRequired()
+                        .HasColumnType("bigint");
 
                 b.Property<string>("AddressId")
                     .IsRequired()
@@ -88,9 +88,9 @@ namespace webapi.Migrations
 
             modelBuilder.Entity("webapi.Models.DailyLottery", b =>
             {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                b.Property<long>("Id")
+                        .IsRequired()
+                        .HasColumnType("bigint");
 
                 b.Property<string>("AddressId")
                     .IsRequired()
@@ -103,9 +103,9 @@ namespace webapi.Migrations
 
             modelBuilder.Entity("webapi.Models.WeeklyHourLottery", b =>
             {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                b.Property<long>("Id")
+                        .IsRequired()
+                        .HasColumnType("bigint");
 
                 b.Property<string>("AddressId")
                     .IsRequired()
@@ -148,6 +148,10 @@ namespace webapi.Migrations
                 b.Property<int>("LottoType")
                     .IsRequired()
                     .HasColumnType("int");
+
+                b.Property<DateTime>("DateAndTime")
+                    .IsRequired()
+                    .HasColumnType("datetime");
 
                 b.HasKey("Id");
 

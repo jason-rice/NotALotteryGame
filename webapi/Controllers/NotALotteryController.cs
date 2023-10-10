@@ -107,13 +107,34 @@ namespace webapi.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> GetWinnerLists(TicketOrder ticket)
+        {
+            if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
+            {
+                var winners = new List<List<Winners>>
+                {
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.OneHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwoHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.SixHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwelveHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Daily).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Weekly).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                };
+
+                return Ok(winners);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost]
         public async Task<IActionResult> ClaimWinnings(TicketOrder ticket)
         {
             if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
             {
-                var list = await dbContext.Winners.Where(x => x.AddressId == ticket.AccountNum).ToListAsync();
-                dbContext.Winners.RemoveRange(list);
-                await dbContext.SaveChangesAsync();
+                //var list = await dbContext.Winners.Where(x => x.AddressId == ticket.AccountNum).ToListAsync();
+                //dbContext.Winners.RemoveRange(list);
+                //await dbContext.SaveChangesAsync();
                 return Ok(0);
             }
 
@@ -143,7 +164,7 @@ namespace webapi.Controllers
                         {
                             var t = new TwoHourLottery()
                             {
-                                Id = Guid.NewGuid(),
+                                //Id = Guid.NewGuid(),
                                 AddressId = ticket.AccountNum,
                             };
                             await dbContext.TwoHourLottery.AddAsync(t);
@@ -154,7 +175,7 @@ namespace webapi.Controllers
                         {
                             var t = new SixHourLottery()
                             {
-                                Id = Guid.NewGuid(),
+                                //Id = Guid.NewGuid(),
                                 AddressId = ticket.AccountNum,
                             };
                             await dbContext.SixHourLottery.AddAsync(t);
@@ -165,7 +186,7 @@ namespace webapi.Controllers
                         {
                             var t = new TwelveHourLottery()
                             {
-                                Id = Guid.NewGuid(),
+                                //Id = Guid.NewGuid(),
                                 AddressId = ticket.AccountNum,
                             };
                             await dbContext.TwelveHourLottery.AddAsync(t);
@@ -176,7 +197,7 @@ namespace webapi.Controllers
                         {
                             var t = new DailyLottery()
                             {
-                                Id = Guid.NewGuid(),
+                                //Id = Guid.NewGuid(),
                                 AddressId = ticket.AccountNum,
                             };
                             await dbContext.DailyLottery.AddAsync(t);
@@ -187,7 +208,7 @@ namespace webapi.Controllers
                         {
                             var t = new WeeklyLottery()
                             {
-                                Id = Guid.NewGuid(),
+                                //Id = Guid.NewGuid(),
                                 AddressId = ticket.AccountNum,
                             };
                             await dbContext.WeeklyLottery.AddAsync(t);
@@ -230,27 +251,31 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.OneHourLottery.ToArrayAsync();
-                        if (list != null)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.OneHour, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.OneHour),
-                            };
-                            DeleteTickets(LottoTypes.OneHour);
-                            return Ok(output);
+                            //var o = await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.OneHour, numTickets);
+                            //LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.OneHour, numTickets);
+                            //LottoModel.ResetTimer(dbContext, LottoTypes.OneHour);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.OneHour, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.OneHour),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.OneHour);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.OneHour, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.OneHour),
-                        };
-                        return Ok(output);
+                        LottoModel.ResetTimer(dbContext, LottoTypes.OneHour);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.OneHour),
+                        //};
+                        return Ok(1);
                     }
                 case LottoTypes.TwoHour:
                     numTickets = await dbContext.TwoHourLottery.CountAsync();
@@ -258,27 +283,29 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.TwoHourLottery.ToArrayAsync();
-                        if (list.Length > 0)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.TwoHour, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.TwoHour),
-                            };
-                            DeleteTickets(LottoTypes.TwoHour);
-                            return Ok(output);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.TwoHour, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.TwoHour),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.TwoHour);
+                            //return Ok(output);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.TwoHour, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.TwoHour),
-                        };
-                        return Ok(output);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.TwoHour),
+                        //};
+                        LottoModel.ResetTimer(dbContext, LottoTypes.TwoHour);
+                        return Ok(1);
                     }
                 case LottoTypes.SixHour:
                     numTickets = await dbContext.SixHourLottery.CountAsync();
@@ -286,27 +313,29 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.SixHourLottery.ToArrayAsync();
-                        if (list.Length > 0)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.SixHour, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.SixHour),
-                            };
-                            DeleteTickets(LottoTypes.SixHour);
-                            return Ok(output);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.SixHour, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.SixHour),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.SixHour);
+                            //return Ok(output);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.SixHour, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.SixHour),
-                        };
-                        return Ok(output);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.SixHour),
+                        //};
+                        LottoModel.ResetTimer(dbContext, LottoTypes.SixHour);
+                        return Ok(1);
                     }
                 case LottoTypes.TwelveHour:
                     numTickets = await dbContext.TwelveHourLottery.CountAsync();
@@ -314,27 +343,29 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.TwelveHourLottery.ToArrayAsync();
-                        if (list.Length > 0)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.TwelveHour, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.TwelveHour),
-                            };
-                            DeleteTickets(LottoTypes.TwelveHour);
-                            return Ok(output);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.TwelveHour, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.TwelveHour),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.TwelveHour);
+                            //return Ok(output);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.TwelveHour, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.TwelveHour),
-                        };
-                        return Ok(output);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.TwelveHour),
+                        //};
+                        LottoModel.ResetTimer(dbContext, LottoTypes.TwelveHour);
+                        return Ok(1);
                     }
                 case LottoTypes.Daily:
                     numTickets = await dbContext.DailyLottery.CountAsync();
@@ -342,27 +373,29 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.DailyLottery.ToArrayAsync();
-                        if (list.Length > 0)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.Daily, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.Daily),
-                            };
-                            DeleteTickets(LottoTypes.Daily);
-                            return Ok(output);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.Daily, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.Daily),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.Daily);
+                            //return Ok(output);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.Daily, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.Daily),
-                        };
-                        return Ok(output);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.Daily),
+                        //};
+                        LottoModel.ResetTimer(dbContext, LottoTypes.Daily);
+                        return Ok(1);
                     }
                 case LottoTypes.Weekly:
                     numTickets = await dbContext.WeeklyLottery.CountAsync();
@@ -370,106 +403,33 @@ namespace webapi.Controllers
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
                         var list = await dbContext.WeeklyLottery.ToArrayAsync();
-                        if (list.Length > 0)
+                        if (list != null && list.Length > 0)
                         {
-                            var winner = await SaveWinner(list[winnerInt].AddressId, LottoTypes.Weekly, numTickets);
-                            var output = new RunLotto()
-                            {
-                                Winner = winner,
-                                Date = await ResetTimer(LottoTypes.Weekly),
-                            };
-                            DeleteTickets(LottoTypes.Weekly);
-                            return Ok(output);
+                            //var winner = await LottoModel.SaveWinner(dbContext, list[winnerInt].AddressId, LottoTypes.Weekly, numTickets);
+                            //var output = new RunLotto()
+                            //{
+                            //    Winner = winner,
+                            //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.Weekly),
+                            //};
+                            //LottoModel.DeleteTickets(dbContext, LottoTypes.Weekly);
+                            //return Ok(output);
+                            return Ok(await LottoModel.RunLotto(dbContext, list[winnerInt].AddressId, LottoTypes.Weekly, numTickets));
                         }
                         return NoContent();
                     }
                     else
                     {
-                        var output = new RunLotto()
-                        {
-                            Winner = null,
-                            Date = await ResetTimer(LottoTypes.Weekly),
-                        };
-                        return Ok(output);
+                        //var output = new RunLotto()
+                        //{
+                        //    Winner = null,
+                        //    Date = await LottoModel.ResetTimer(dbContext, LottoTypes.Weekly),
+                        //};
+                        LottoModel.ResetTimer(dbContext, LottoTypes.Weekly);
+                        return Ok(1);
                     }
             }
 
             return BadRequest();
         }
-
-        public async Task<Winners> SaveWinner(string winnerAddress, int type, int numTickets)
-        {
-            long total = numTickets * 18000;
-            var winner = new Winners()
-            {
-                Id = Guid.NewGuid(),
-                AddressId = winnerAddress,
-                AmountPulse = Math.Abs(total),
-                LottoType = type,
-            };
-
-            await dbContext.Winners.AddAsync(winner);
-            await dbContext.SaveChangesAsync();
-
-            return winner;
-        }
-
-        public async Task<DateTime> ResetTimer(int type)
-        {
-            var endTimeToReset = await dbContext.LottoTimes.Where(x => x.Id == type).FirstOrDefaultAsync();
-
-            switch (type)
-            {
-                case LottoTypes.OneHour:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddHours(1);
-                    break;
-                case LottoTypes.TwoHour:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddHours(2);
-                    break;
-                case LottoTypes.SixHour:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddHours(6);
-                    break;
-                case LottoTypes.TwelveHour:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddHours(12);
-                    break;
-                case LottoTypes.Daily:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddDays(1);
-                    break;
-                case LottoTypes.Weekly:
-                    endTimeToReset.DateAndTime = DateTime.Now.AddDays(7);
-                    break;
-            }
-            
-            await dbContext.SaveChangesAsync();
-            return endTimeToReset.DateAndTime;
-        }
-
-        public void DeleteTickets(int type)
-        {
-            switch (type)
-            {
-                case LottoTypes.OneHour:
-                    dbContext.OneHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwoHour:
-                    dbContext.TwoHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.SixHour:
-                    dbContext.SixHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwelveHour:
-                    dbContext.TwelveHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Daily:
-                    dbContext.DailyLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Weekly:
-                    dbContext.WeeklyLottery.ExecuteDelete();
-                    break;
-            }
-            
-            dbContext.SaveChanges();
-        }
-
     }
 }
