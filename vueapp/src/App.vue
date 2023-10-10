@@ -17,23 +17,28 @@
             <br />
         </div>
 
-        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="accountNum !== null && lottoTypes !== null && lottoTimes !== null && ticketsBought !== null">
+        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="accountNum !== null && lottoTypes !== null && lottoTimes !== null && ticketsBought !== null && totalTicketsBought !== null && winnerLists !== null">
             <Lotto  
                 v-for="(t, index) in lottoTypes" :key="t"
                 :addressNumber="accountNum" 
                 :lottoType="lottoTypes[index]" 
                 :timeEnd="lottoTimes[index].dateAndTime"
                 :ticketsBoughtIncoming="ticketsBought[index]"
+                :totalTicketsBoughtIncoming="totalTicketsBought[index]"
+                :winners="winnerLists[index]"
                 @refreshLotto="RefreshLotto()"
             />
         </div>
-        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="accountNum === null && lottoTypes !== null && lottoTimes !== null && ticketsBought === null">
+        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="accountNum === null && lottoTypes !== null && lottoTimes !== null && totalTicketsBought && winnerLists !== null">
             <Lotto  
                 v-for="(t, index) in lottoTypes" :key="t"
                 :addressNumber="null" 
                 :lottoType="lottoTypes[index]" 
                 :timeEnd="lottoTimes[index].dateAndTime"
                 :ticketsBoughtIncoming="0"
+                :totalTicketsBoughtIncoming="totalTicketsBought[index]"
+                :winners="winnerLists[index]"
+                @refreshLotto="RefreshLotto()"
             />
         </div>
         
@@ -55,7 +60,7 @@ export default {
         return {
             accountNum: null,
             eth: null,
-            connected: null,
+            // connected: null,
             lottoTimes: null,
             winnerLists: null,
             lottoTypes: [
@@ -67,6 +72,7 @@ export default {
                 { id: 6, type: 'Weekly Lotto' },
             ],
             ticketsBought: null,
+            totalTicketsBought: null,
             winningsTotalPulse: null,
         };
     },
@@ -77,6 +83,63 @@ export default {
   methods: {
     InitializePage() {
         this.GetLottoTimes();
+        this.GetWinnerLists();
+        this.GetTotalTicketsBought();
+    },
+    async ConnectMetaMask() {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+            .catch((err) => {
+            if (err.code === 4001) {
+                // EIP-1193 userRejectedRequest error
+                // If this happens, the user rejected the connection request.
+                console.log('Please connect to MetaMask.');
+            } else {
+                console.error(err);
+            }
+            });
+        const account = accounts[0];
+        this.accountNum = account;
+    },
+    async GetLottoTimes() {
+        await fetch('api/NotALottery/GetLottoTimes', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.lottoTimes = json;
+            } else {
+                this.lottoTimes = null;
+            }
+            return;
+        });
+    },
+    async GetWinnerLists() {
+        await fetch('api/NotALottery/GetWinnerLists', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.winnerLists = json;
+            } else {
+                this.winnerLists = null;
+            }
+            return;
+        });
+    },
+    async GetTotalTicketsBought() {
+        await fetch('api/NotALottery/GetTotalTicketsBought', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            this.totalTicketsBought = json;
+            return;
+        });
     },
     async GetWinnings(val) {
         let payload = { AccountNum: val };
@@ -96,22 +159,6 @@ export default {
             return;
         });
     },
-    async GetLottoTimes() {
-        // this.lottoTimes = null;
-        await fetch('api/NotALottery/GetLottoTimes', {
-            method: 'Get',
-            headers: { 'Content-type': 'application/json; charset=UTF-8' }
-        })
-        .then(r => r.json())
-        .then(json => {
-            if (json.status !== 400) {
-                this.lottoTimes = json;
-            } else {
-                this.lottoTimes = null;
-            }
-            return;
-        });
-    },
     async GetTicketsBought(val) {
         let payload = { AccountNum: val };
 
@@ -122,45 +169,9 @@ export default {
         })
         .then(r => r.json())
         .then(json => {
-            if (json.status !== 400) {
-                this.ticketsBought = json;
-            } else {
-                this.ticketsBought = null;
-            }
+            this.ticketsBought = json;
             return;
         });
-    },
-    async GetWinnerLists(val) {
-        let payload = { AccountNum: val };
-
-        await fetch('api/NotALottery/GetWinnerLists', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: { 'Content-type': 'application/json; charset=UTF-8' }
-        })
-        .then(r => r.json())
-        .then(json => {
-            if (json.status !== 400) {
-                this.winnerLists = json;
-            } else {
-                this.winnerLists = null;
-            }
-            return;
-        });
-    },
-    async ConnectMetaMask() {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-            .catch((err) => {
-            if (err.code === 4001) {
-                // EIP-1193 userRejectedRequest error
-                // If this happens, the user rejected the connection request.
-                console.log('Please connect to MetaMask.');
-            } else {
-                console.error(err);
-            }
-            });
-        const account = accounts[0];
-        this.accountNum = account;
     },
     async ClaimWinnings() {
         let payload = { AccountNum: this.accountNum };
@@ -181,12 +192,11 @@ export default {
         });
     },
     async RefreshLotto() {
-        this.GetWinnings(this.accountNum);
-        // this.lottoTimes = null;
-        // this.winnerLists = null;
-        this.GetLottoTimes();
-        this.GetTicketsBought(this.accountNum);
-        this.GetWinnerLists(this.accountNum);
+        setTimeout(() => {
+            this.GetLottoTimes();
+            this.GetWinnerLists();
+            this.GetWinnings(this.accountNum);
+        }, 5000)
     },
   },
   watch: {
@@ -194,19 +204,19 @@ export default {
         let vm = this;
         setTimeout(() => {
             this.accountNum = vm.accountNum;
-            this.GetTicketsBought(vm.accountNum);
             this.GetWinnings(vm.accountNum);
+            this.GetTicketsBought(vm.accountNum);
         }, 1000)
         // this.connected = window.ethereum._state.accounts.length;
         // this.connected = window.ethereum.request({method: 'eth_accounts'});
     }
   },
   created() {
-    this.eth = ethereum;
+    // this.eth = ethereum;
 
-    setTimeout(() => {
-        this.accountNum = ethereum.selectedAddress;
-    }, 1000)
+    // setTimeout(() => {
+    //     this.accountNum = ethereum.selectedAddress;
+    // }, 1000)
 
 
     // if (provider) {
@@ -241,6 +251,12 @@ export default {
     
   },
   mounted() {
+    this.eth = ethereum;
+
+    setTimeout(() => {
+        this.accountNum = ethereum.selectedAddress;
+    }, 1000)
+
     this.InitializePage();
   },
 }
