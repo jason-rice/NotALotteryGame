@@ -8,8 +8,9 @@ namespace webapi
     public class RepeatingService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        //private readonly static int numHours = -5; // production
-        private readonly static int numHours = 0; // development
+
+        private readonly static int numHours = 0;
+
         public RepeatingService(IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;

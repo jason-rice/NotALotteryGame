@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Nethereum.Web3;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Reflection;
 using webapi.Data;
 using webapi.Models;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
+using Nethereum.Model;
 
 namespace webapi.Controllers
 {
@@ -80,12 +84,12 @@ namespace webapi.Controllers
         {
             var winners = new List<List<Winners>>
                 {
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.OneHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwoHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.SixHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwelveHour).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Daily).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
-                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Weekly).OrderBy(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.OneHour).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwoHour).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.SixHour).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.TwelveHour).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Daily).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
+                    await dbContext.Winners.Where(x => x.LottoType == LottoTypes.Weekly).OrderByDescending(x => x.DateAndTime).Take(5).ToListAsync(),
                 };
 
             return Ok(winners);
@@ -124,29 +128,30 @@ namespace webapi.Controllers
             return Ok(tickets);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTotalPlsList()
+        {
+            long[] totalPls = new long[6];
+
+            totalPls[0] = await dbContext.OneHourLottery.CountAsync() * 18000;
+            totalPls[1] = await dbContext.TwoHourLottery.CountAsync() * 18000;
+            totalPls[2] = await dbContext.SixHourLottery.CountAsync() * 18000;
+            totalPls[3] = await dbContext.TwelveHourLottery.CountAsync() * 18000;
+            totalPls[4] = await dbContext.DailyLottery.CountAsync() * 18000;
+            totalPls[5] = await dbContext.WeeklyLottery.CountAsync() * 18000;
+
+            return Ok(totalPls);
+        }
+
         [HttpPost]
         public async Task<IActionResult> GetWinnings(TicketOrder ticket)
         {
             if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
             {
-                return Ok(await dbContext.Winners.Where(x => x.AddressId == ticket.AccountNum).SumAsync(x => x.AmountPulse));
+                return Ok(await LottoModel.GetWinnings(dbContext, ticket.AccountNum));
             }
 
             return Ok(0);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ClaimWinnings(TicketOrder ticket)
-        {
-            if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
-            {
-                //var list = await dbContext.Winners.Where(x => x.AddressId == ticket.AccountNum).ToListAsync();
-                //dbContext.Winners.RemoveRange(list);
-                //await dbContext.SaveChangesAsync();
-                return Ok(0);
-            }
-
-            return BadRequest();
         }
 
         [HttpPost]
@@ -236,6 +241,18 @@ namespace webapi.Controllers
                         return Ok(await dbContext.WeeklyLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync());
                 }
                 return NoContent();
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ClaimWinnings(TicketOrder ticket)
+        {
+            if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
+            {
+                await LottoModel.SendPulseToWinners(dbContext, ticket.AccountNum);
+                return Ok(0);
             }
 
             return BadRequest();

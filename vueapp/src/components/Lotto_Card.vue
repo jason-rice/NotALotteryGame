@@ -7,17 +7,21 @@
       <div class="card-body cards-color-scheme body-border">
         <div><p class="card-text">{{ timeLeft }}</p></div>
         <br />
-        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" :disabled="(timeLeft === 'EXPIRED') || addressNumber === null" /></div>
+        <div><p class="card-text">Prize: {{ totalPls }} PLS!!!</p></div>
         <br />
-        <div><button type="button" class="btn btn-success" @click="SendPulse()" :disabled="(timeLeft === 'EXPIRED') || addressNumber === null">Buy Ticket(s)</button></div>
+        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" :disabled="(timeLeft === 'EXPIRED') || currentAddress === null" /></div>
         <br />
-        <div><p class="card-text">Number of tickets bought: {{ ticketsBought }}</p></div>
+        <div><button type="button" class="btn btn-success" @click="SendPulse()" :disabled="(timeLeft === 'EXPIRED') || currentAddress === null || chainId === null || chainId !== '0x171'">Buy Ticket(s)</button></div>
         <br />
-        <div><p class="card-text">Total number of tickets bought: {{ totalTicketsBought }}</p></div>
+        <div><p class="card-text">Tickets bought: {{ ticketsBought }}</p></div>
+        <div><p class="card-text">All tickets bought: {{ totalTicketsBought }}</p></div>
       </div>
       <div class="card-footer cards-color-scheme border-white">
         Last five winners:
-        <p v-for="win in winnersList" :key="win.id">{{ win.displayString }} won {{ win.amountPulse }} PLS!!!</p>
+        <div v-for="win in winnersList" :key="win.id" class="winners-list row">
+            <div class="left" style="width: 45%;">{{ win.displayString }}</div>
+            <div class="right" style="width: 45%;">{{ win.amountPulse }} PLS!!!</div>
+        </div>
       </div>
     </div>
   </div>
@@ -31,25 +35,29 @@ const ethereum = await MMSDK.getProvider(); // You can also access via window.et
 
 export default {
   props: {
-    addressNumber: null,
     lottoType: null,
     timeEnd: null,
     ticketsBoughtIncoming: null,
     totalTicketsBoughtIncoming: null,
+    totalPlsIncoming: null,
     winners: null,
   },
   data() {
     return {
+      currentAddress: window.ethereum.selectedAddress,
+      chainId: window.ethereum.chainId,
       nextLotteryTime: null,
       timeLeft: null,
       ticketNum: 1,
       ticketsBought: this.ticketsBoughtIncoming,
       totalTicketsBought: this.totalTicketsBoughtIncoming,
+      totalPls: this.totalPlsIncoming,
       winnersList: this.winners,
     };
   },
   methods: {
     InitializePage() {
+      // this.chainId = window.ethereum.chainId;
       this.BeginCountdown(this.timeEnd);
       this.ShowWinnersListStrings();
     },
@@ -78,6 +86,7 @@ export default {
             vm.timeLeft = "EXPIRED";
             vm.ticketsBought = 0;
             vm.totalTicketsBought = 0;
+            vm.totalPls = 0;
             vm.$emit("refreshLotto");
           }
         }
@@ -90,11 +99,13 @@ export default {
           method: "eth_sendTransaction",
           params: [
             {
-              from: this.addressNumber,
+              from: this.currentAddress,
               // to: "0xFfFB14A9090615798a77dcFD926f0A6eb99Fd5CF", // wallet 1.1
-              to: "0x182Ea006D7ABd3265021d46ef625cA71543529e3", // wallet 1.2
-              //to: "0xA6Ab2919659bA1F6A492d813B945ac76bF5b090E", // wallet 2
-              // to: "0x1a552c4DDec9E9Fd9103c1174c23ED270E8Eab4D", // wallet 3
+              // to: "0x182Ea006D7ABd3265021d46ef625cA71543529e3", // wallet 1.2
+              //to: "0xA6Ab2919659bA1F6A492d813B945ac76bF5b090E", // wallet 2.1
+              //to: "0x49d17bec36e0e88e908a9b0c742a6e33f512d34a", // wallet 2.2
+              // to: "0x1a552c4DDec9E9Fd9103c1174c23ED270E8Eab4D", // wallet 3.1
+              to: "0x2929d460d1e260a2af4e7d51e0a6f25ef61c899f", // wallet 3.2
               value: Number(20000000000000000000000 * this.ticketNum).toString(16),
             },
           ],
@@ -105,7 +116,7 @@ export default {
     async BuyTickets(txHash) {
       if (this.ticketNum > 0 && this.ticketNum <= 10000) {
         let payload = {
-          AccountNum: this.addressNumber,
+          AccountNum: this.currentAddress,
           TicketNum: this.ticketNum,
           Type: this.lottoType.id,
           TxHash: txHash,
@@ -150,6 +161,9 @@ export default {
     totalTicketsBoughtIncoming() {
       this.totalTicketsBought = this.totalTicketsBoughtIncoming;
     },
+    totalPlsIncoming() {
+      this.totalPls = this.totalPlsIncoming;
+    },
     winners() {
       this.winnersList = this.winners;
       this.ShowWinnersListStrings();
@@ -172,5 +186,18 @@ export default {
 .body-border {
   border-left: 1px solid white;
   border-right: 1px solid white;
+}
+.winners-list {
+  font-size: 15px;
+  margin: 0px;
+}
+.left {
+  text-align: left;
+}
+.right {
+  text-align: right;
+}
+.inline {
+  display: inline-block;
 }
 </style>

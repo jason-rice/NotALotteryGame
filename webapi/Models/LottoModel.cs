@@ -1,251 +1,97 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Nethereum.RPC.Eth.DTOs;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
+using System.Numerics;
 using webapi.Data;
 
 namespace webapi.Models
 {
     public class LottoModel
     {
-        public static void RunLotto(NotALotteryGameAPIDbContext dbContext, string winnerAddress, int type, int numTickets)
+        public static async Task<long> GetWinnings(NotALotteryGameAPIDbContext dbContext, string addressId)
         {
-            long total = numTickets * 18000;
-            var winner = new Winners()
-            {
-                Id = Guid.NewGuid(),
-                AddressId = winnerAddress,
-                AmountPulse = Math.Abs(total),
-                LottoType = type,
-                DateAndTime = DateTime.Now,
-            };
-            dbContext.Winners.Add(winner);
-
-            var endTimeToReset = dbContext.LottoTimes.Where(x => x.Id == type).FirstOrDefault();
-            if (endTimeToReset != null)
-            {
-                endTimeToReset.DateAndTime = ResetTimerSwitch(endTimeToReset.DateAndTime, type);
-            }
-
-            switch (type)
-            {
-                case LottoTypes.OneHour:
-                    dbContext.OneHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwoHour:
-                    dbContext.TwoHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.SixHour:
-                    dbContext.SixHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwelveHour:
-                    dbContext.TwelveHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Daily:
-                    dbContext.DailyLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Weekly:
-                    dbContext.WeeklyLottery.ExecuteDelete();
-                    break;
-            }
-
-            dbContext.SaveChanges();
+            return await dbContext.Winners
+                    .Where(x => x.AddressId == addressId && x.TransactionId == null)
+                    .SumAsync(x => x.AmountPulse);
         }
 
-        //public static async Task<int> RunLotto(NotALotteryGameAPIDbContext dbContext, string winnerAddress, int type, int numTickets)
+        //public static async void DeleteWinners(NotALotteryGameAPIDbContext dbContext, string addressId)
         //{
-        //    long total = numTickets * 18000;
-        //    var winner = new Winners()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        AddressId = winnerAddress,
-        //        AmountPulse = Math.Abs(total),
-        //        LottoType = type,
-        //        DateAndTime = DateTime.Now,
-        //    };
-        //    await dbContext.Winners.AddAsync(winner);
-
-
-        //    var endTimeToReset = await dbContext.LottoTimes.Where(x => x.Id == type).FirstOrDefaultAsync();
-        //    if (endTimeToReset != null)
-        //    {
-        //        endTimeToReset.DateAndTime = ResetTimerSwitch(endTimeToReset.DateAndTime, type);
-        //    }
-
-        //    //await dbContext.SaveChangesAsync();
-
-
-        //    switch (type)
-        //    {
-        //        case LottoTypes.OneHour:
-        //            dbContext.OneHourLottery.ExecuteDelete();
-        //            break;
-        //        case LottoTypes.TwoHour:
-        //            dbContext.TwoHourLottery.ExecuteDelete();
-        //            break;
-        //        case LottoTypes.SixHour:
-        //            dbContext.SixHourLottery.ExecuteDelete();
-        //            break;
-        //        case LottoTypes.TwelveHour:
-        //            dbContext.TwelveHourLottery.ExecuteDelete();
-        //            break;
-        //        case LottoTypes.Daily:
-        //            dbContext.DailyLottery.ExecuteDelete();
-        //            break;
-        //        case LottoTypes.Weekly:
-        //            dbContext.WeeklyLottery.ExecuteDelete();
-        //            break;
-        //    }
-
-        //    dbContext.SaveChanges();
-
-        //    return 1;
-        //}
-
-        public static async void SaveWinner(NotALotteryGameAPIDbContext dbContext, string winnerAddress, int type, int numTickets)
-        {
-            long total = numTickets * 18000;
-            var winner = new Winners()
-            {
-                Id = Guid.NewGuid(),
-                AddressId = winnerAddress,
-                AmountPulse = Math.Abs(total),
-                LottoType = type,
-                DateAndTime = DateTime.Now,
-            };
-
-            await dbContext.Winners.AddAsync(winner);
-            await dbContext.SaveChangesAsync();
-
-            //return winner;
-        }
-
-        public static void ResetTimer(NotALotteryGameAPIDbContext dbContext, int type)
-        {
-            var endTimeToReset = dbContext.LottoTimes.Where(x => x.Id == type).FirstOrDefault();
-
-            if (endTimeToReset != null)
-            {
-                endTimeToReset.DateAndTime = ResetTimerSwitch(endTimeToReset.DateAndTime, type);
-                dbContext.SaveChanges();
-            }
-        }
-
-        public static DateTime ResetTimerSwitch(DateTime dt, int type)
-        {
-            switch (type)
-            {
-                case LottoTypes.OneHour:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddMinutes(2);
-                    }
-                    break;
-                case LottoTypes.TwoHour:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddHours(2);
-                    }
-                    break;
-                case LottoTypes.SixHour:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddHours(6);
-                    }
-                    break;
-                case LottoTypes.TwelveHour:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddHours(12);
-                    }
-                    break;
-                case LottoTypes.Daily:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddDays(1);
-                    }
-                    break;
-                case LottoTypes.Weekly:
-                    if (dt < DateTime.Now)
-                    {
-                        dt = dt.AddDays(7);
-                    }
-                    break;
-            }
-            return dt;
-        }
-
-        public static void DeleteTickets(NotALotteryGameAPIDbContext dbContext, int type)
-        {
-            switch (type)
-            {
-                case LottoTypes.OneHour:
-                    dbContext.OneHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwoHour:
-                    dbContext.TwoHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.SixHour:
-                    dbContext.SixHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.TwelveHour:
-                    dbContext.TwelveHourLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Daily:
-                    dbContext.DailyLottery.ExecuteDelete();
-                    break;
-                case LottoTypes.Weekly:
-                    dbContext.WeeklyLottery.ExecuteDelete();
-                    break;
-            }
-
-            dbContext.SaveChanges();
-        }
-
-        //public static async Task<Winners> SaveWinner(NotALotteryGameAPIDbContext dbContext, string winnerAddress, int type, int numTickets)
-        //{
-        //    long total = numTickets * 18000;
-        //    var winner = new Winners()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        AddressId = winnerAddress,
-        //        AmountPulse = Math.Abs(total),
-        //        LottoType = type,
-        //        DateAndTime = DateTime.Now,
-        //    };
-
-        //    await dbContext.Winners.AddAsync(winner);
+        //    var list = await dbContext.Winners.Where(x => x.AddressId == addressId).ToListAsync();
+        //    dbContext.Winners.RemoveRange(list);
         //    await dbContext.SaveChangesAsync();
-
-        //    return winner;
         //}
 
-        //public static async Task<DateTime> ResetTimer(NotALotteryGameAPIDbContext dbContext, int type)
+        public static async Task<int> SendPulseToWinners(NotALotteryGameAPIDbContext dbContext, string addressId)
+        {
+            var winners = await dbContext.Winners
+                .Where(x => x.AddressId == addressId && x.TransactionId == null)
+                .ToListAsync();
+
+            if (winners != null && winners.Count > 0)
+            {
+                long amount = winners.Sum(x => x.AmountPulse);
+
+                //var url = "https://rpc.v4.testnet.pulsechain.com";
+                var url = "https://rpc.pulsechain.com";
+                //long chainId = 943;
+                //var privateKey = "6a73ef66f7c10141d8c171616cc07df0741c7f325748e63af7bbedeec0c7fd38"; // address 3 account 1
+                var privateKey = "45b3870d4d893a9842af06b453d6400849ee9354a00e7462b68cd5d7054fed1d"; // address 3 account 2
+
+                var account = new Account(privateKey);//, chainId);
+                var web3 = new Web3(account, url);
+
+                //var transaction = await web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(addressId, amount);
+                web3.Eth.GetEtherTransferService().TransferEtherAsync(addressId, amount);
+
+                //await SaveTransactionId(dbContext, winners, transaction);
+                foreach (var win in winners)
+                {
+                    win.TransactionId = "true";
+                }
+                await dbContext.SaveChangesAsync();
+            }
+            return 0;
+        }
+
+
+
+
+
+
+        //public static async Task<int> SaveTransactionId(NotALotteryGameAPIDbContext dbContext, List<Winners> winners, TransactionReceipt transaction)
         //{
-        //    var endTimeToReset = await dbContext.LottoTimes.Where(x => x.Id == type).FirstOrDefaultAsync();
-
-        //    switch (type)
+        //    foreach (var win in winners)
         //    {
-        //        case LottoTypes.OneHour:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddMinutes(1);
-        //            break;
-        //        case LottoTypes.TwoHour:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddHours(2);
-        //            break;
-        //        case LottoTypes.SixHour:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddHours(6);
-        //            break;
-        //        case LottoTypes.TwelveHour:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddHours(12);
-        //            break;
-        //        case LottoTypes.Daily:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddDays(1);
-        //            break;
-        //        case LottoTypes.Weekly:
-        //            endTimeToReset.DateAndTime = DateTime.Now.AddDays(7);
-        //            break;
+        //        win.TransactionId = transaction.TransactionHash;
         //    }
-
         //    await dbContext.SaveChangesAsync();
-        //    return endTimeToReset.DateAndTime;
+        //    return 0;
         //}
+
+        //public static async Task<long> SendPulseToWinners(NotALotteryGameAPIDbContext dbContext, string addressId, long amount)
+        //{
+        //    var url = "https://rpc.v4.testnet.pulsechain.com";
+        //    BigInteger chainId = 943;
+        //    var privateKey = "6a73ef66f7c10141d8c171616cc07df0741c7f325748e63af7bbedeec0c7fd38"; // address 3 account 1
+        //    //var privateKey = "45b3870d4d893a9842af06b453d6400849ee9354a00e7462b68cd5d7054fed1d"; // address 3 account 2
+
+        //    var account = new Account(privateKey, chainId);
+        //    var web3 = new Web3(account, url);
+        //    //var web3 = new Web3("https://mainnet.infura.io/v3/ae64e7ad3f09450d86afa1ae9873cdd3"); // ethereum
+
+
+        //    //var balance = await web3.Eth.GetBalance.SendRequestAsync(ticket.AccountNum);
+        //    //var etherAmount = Web3.Convert.FromWei(balance.Value);
+
+
+        //    var transaction = await web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(addressId, amount);
+        //    //await web3.Eth.GetEtherTransferService().TransferEtherAsync(addressId, amount);
+
+        //    return await dbContext.Winners.Where(x => x.AddressId == addressId).SumAsync(x => x.AmountPulse);
+        //}
+
 
     }
 }
