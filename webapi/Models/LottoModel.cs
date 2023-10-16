@@ -16,13 +16,6 @@ namespace webapi.Models
                     .SumAsync(x => x.AmountPulse);
         }
 
-        //public static async void DeleteWinners(NotALotteryGameAPIDbContext dbContext, string addressId)
-        //{
-        //    var list = await dbContext.Winners.Where(x => x.AddressId == addressId).ToListAsync();
-        //    dbContext.Winners.RemoveRange(list);
-        //    await dbContext.SaveChangesAsync();
-        //}
-
         public static async Task<int> SendPulseToWinners(NotALotteryGameAPIDbContext dbContext, string addressId)
         {
             var winners = await dbContext.Winners
@@ -35,30 +28,24 @@ namespace webapi.Models
 
                 //var url = "https://rpc.v4.testnet.pulsechain.com";
                 var url = "https://rpc.pulsechain.com";
-                //long chainId = 943;
                 //var privateKey = "6a73ef66f7c10141d8c171616cc07df0741c7f325748e63af7bbedeec0c7fd38"; // address 3 account 1
                 var privateKey = "45b3870d4d893a9842af06b453d6400849ee9354a00e7462b68cd5d7054fed1d"; // address 3 account 2
 
                 var account = new Account(privateKey);//, chainId);
                 var web3 = new Web3(account, url);
 
-                //var transaction = await web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(addressId, amount);
-                web3.Eth.GetEtherTransferService().TransferEtherAsync(addressId, amount);
+                var transaction = await web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(addressId, amount);
+                //web3.Eth.GetEtherTransferService().TransferEtherAsync(addressId, amount);
 
                 //await SaveTransactionId(dbContext, winners, transaction);
                 foreach (var win in winners)
                 {
-                    win.TransactionId = "true";
+                    win.TransactionId = transaction.TransactionHash;
                 }
                 await dbContext.SaveChangesAsync();
             }
             return 0;
         }
-
-
-
-
-
 
         //public static async Task<int> SaveTransactionId(NotALotteryGameAPIDbContext dbContext, List<Winners> winners, TransactionReceipt transaction)
         //{
@@ -68,6 +55,13 @@ namespace webapi.Models
         //    }
         //    await dbContext.SaveChangesAsync();
         //    return 0;
+        //}
+
+        //public static async void DeleteWinners(NotALotteryGameAPIDbContext dbContext, string addressId)
+        //{
+        //    var list = await dbContext.Winners.Where(x => x.AddressId == addressId).ToListAsync();
+        //    dbContext.Winners.RemoveRange(list);
+        //    await dbContext.SaveChangesAsync();
         //}
 
         //public static async Task<long> SendPulseToWinners(NotALotteryGameAPIDbContext dbContext, string addressId, long amount)

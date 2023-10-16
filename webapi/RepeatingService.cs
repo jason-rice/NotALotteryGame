@@ -9,16 +9,17 @@ namespace webapi
     {
         private readonly IServiceScopeFactory _scopeFactory;
 
-        private readonly static int numHours = 0;
+        //private readonly static int numHours = -5; // production
+        private readonly static int numHours = 0; // development
 
         public RepeatingService(IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)//cancellationToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)//await _timer.WaitForNextTickAsync(stoppingToken))
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
@@ -28,30 +29,42 @@ namespace webapi
                     var now = DateTime.Now.AddHours(numHours);
                     if (times[0].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.OneHour, times[0]);
+                        RunLotto1(dbContext, LottoTypes.TwoMinute, times[0]);
                     }
                     if (times[1].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.TwoHour, times[1]);
+                        RunLotto1(dbContext, LottoTypes.FiveMinute, times[1]);
                     }
                     if (times[2].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.SixHour, times[2]);
+                        RunLotto1(dbContext, LottoTypes.ThirtyMinute, times[2]);
                     }
                     if (times[3].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.TwelveHour, times[3]);
+                        RunLotto1(dbContext, LottoTypes.OneHour, times[3]);
                     }
                     if (times[4].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.Daily, times[4]);
+                        RunLotto1(dbContext, LottoTypes.TwoHour, times[4]);
                     }
                     if (times[5].DateAndTime < now)
                     {
-                        RunLotto1(dbContext, LottoTypes.Weekly, times[5]);
+                        RunLotto1(dbContext, LottoTypes.SixHour, times[5]);
+                    }
+                    if (times[6].DateAndTime < now)
+                    {
+                        RunLotto1(dbContext, LottoTypes.TwelveHour, times[6]);
+                    }
+                    if (times[7].DateAndTime < now)
+                    {
+                        RunLotto1(dbContext, LottoTypes.Daily, times[7]);
+                    }
+                    if (times[8].DateAndTime < now)
+                    {
+                        RunLotto1(dbContext, LottoTypes.Weekly, times[8]);
                     }
 
-                    await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
             }
         }
@@ -61,8 +74,47 @@ namespace webapi
             Random rnd = new Random();
             switch (type)
             {
+                case LottoTypes.TwoMinute:
+                    var numTickets = dbContext.TwoMinuteLottery.Count();
+                    if (numTickets > 0)
+                    {
+                        var winnerInt = rnd.Next(1, numTickets) - 1;
+                        var list = dbContext.TwoMinuteLottery.ToArray();
+                        if (list != null && list.Length > 0)
+                        {
+                            RunLotto2(dbContext, list[winnerInt].AddressId, LottoTypes.TwoMinute, numTickets);
+                        }
+                    }
+                    ResetTimer(dbContext, LottoTypes.TwoMinute, time);
+                    break;
+                case LottoTypes.FiveMinute:
+                    numTickets = dbContext.FiveMinuteLottery.Count();
+                    if (numTickets > 0)
+                    {
+                        var winnerInt = rnd.Next(1, numTickets) - 1;
+                        var list = dbContext.FiveMinuteLottery.ToArray();
+                        if (list != null && list.Length > 0)
+                        {
+                            RunLotto2(dbContext, list[winnerInt].AddressId, LottoTypes.FiveMinute, numTickets);
+                        }
+                    }
+                    ResetTimer(dbContext, LottoTypes.FiveMinute, time);
+                    break;
+                case LottoTypes.ThirtyMinute:
+                    numTickets = dbContext.ThirtyMinuteLottery.Count();
+                    if (numTickets > 0)
+                    {
+                        var winnerInt = rnd.Next(1, numTickets) - 1;
+                        var list = dbContext.ThirtyMinuteLottery.ToArray();
+                        if (list != null && list.Length > 0)
+                        {
+                            RunLotto2(dbContext, list[winnerInt].AddressId, LottoTypes.ThirtyMinute, numTickets);
+                        }
+                    }
+                    ResetTimer(dbContext, LottoTypes.ThirtyMinute, time);
+                    break;
                 case LottoTypes.OneHour:
-                    var numTickets = dbContext.OneHourLottery.Count();
+                    numTickets = dbContext.OneHourLottery.Count();
                     if (numTickets > 0)
                     {
                         var winnerInt = rnd.Next(1, numTickets) - 1;
@@ -157,6 +209,15 @@ namespace webapi
 
             switch (type)
             {
+                case LottoTypes.TwoMinute:
+                    dbContext.TwoMinuteLottery.ExecuteDelete();
+                    break;
+                case LottoTypes.FiveMinute:
+                    dbContext.FiveMinuteLottery.ExecuteDelete();
+                    break;
+                case LottoTypes.ThirtyMinute:
+                    dbContext.ThirtyMinuteLottery.ExecuteDelete();
+                    break;
                 case LottoTypes.OneHour:
                     dbContext.OneHourLottery.ExecuteDelete();
                     break;
@@ -190,10 +251,28 @@ namespace webapi
         {
             switch (type)
             {
-                case LottoTypes.OneHour:
+                case LottoTypes.TwoMinute:
                     if (dt < DateTime.Now.AddHours(numHours))
                     {
                         dt = dt.AddMinutes(2);
+                    }
+                    break;
+                case LottoTypes.FiveMinute:
+                    if (dt < DateTime.Now.AddHours(numHours))
+                    {
+                        dt = dt.AddMinutes(5);
+                    }
+                    break;
+                case LottoTypes.ThirtyMinute:
+                    if (dt < DateTime.Now.AddHours(numHours))
+                    {
+                        dt = dt.AddMinutes(30);
+                    }
+                    break;
+                case LottoTypes.OneHour:
+                    if (dt < DateTime.Now.AddHours(numHours))
+                    {
+                        dt = dt.AddHours(1);
                     }
                     break;
                 case LottoTypes.TwoHour:

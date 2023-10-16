@@ -12,6 +12,9 @@ namespace webapi.Data
         // add a migration to add changes to db.
         // go to Package Manager Console, type Add-Migration "name"
         // next type Update-Database
+        public DbSet<TwoMinuteLottery> TwoMinuteLottery { get; set; }
+        public DbSet<FiveMinuteLottery> FiveMinuteLottery { get; set; }
+        public DbSet<ThirtyMinuteLottery> ThirtyMinuteLottery { get; set; }
         public DbSet<OneHourLottery> OneHourLottery { get; set; }
         public DbSet<TwoHourLottery> TwoHourLottery { get; set; }
         public DbSet<SixHourLottery> SixHourLottery { get; set; }

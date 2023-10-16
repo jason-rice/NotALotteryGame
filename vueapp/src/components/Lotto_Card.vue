@@ -5,16 +5,17 @@
         <h5>{{ lottoType.type }}</h5>
       </div>
       <div class="card-body cards-color-scheme body-border">
-        <div><p class="card-text">{{ timeLeft }}</p></div>
+        <div><p class="card-text" style="color:#ffc107">Prize: {{ totalPls }} PLS!!!</p></div>
         <br />
-        <div><p class="card-text">Prize: {{ totalPls }} PLS!!!</p></div>
+        <div><p class="card-text" :style="timeLeft === 'Calculating winner!!' ? 'color:indianred' : 'color:white'">{{ timeLeft }}</p></div>
         <br />
-        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" :disabled="(timeLeft === 'EXPIRED') || currentAddress === null" /></div>
+        <div><input type="number" v-model="ticketNum" :min="1" :max="10000" step="1" style="width: 50%" :disabled="canBuyTickets" /></div>
         <br />
-        <div><button type="button" class="btn btn-success" @click="SendPulse()" :disabled="(timeLeft === 'EXPIRED') || currentAddress === null || chainId === null || chainId !== '0x171'">Buy Ticket(s)</button></div>
+        <div>
+          <button type="button" class="btn btn-success" @click="SendPulse()" :disabled="canBuyTickets">Buy Ticket(s)</button>
+        </div>
         <br />
         <div><p class="card-text">Tickets bought: {{ ticketsBought }}</p></div>
-        <div><p class="card-text">All tickets bought: {{ totalTicketsBought }}</p></div>
       </div>
       <div class="card-footer cards-color-scheme border-white">
         Last five winners:
@@ -29,37 +30,40 @@
 
 
 <script>
-import MetaMaskSDK from "@metamask/sdk";
-const MMSDK = new MetaMaskSDK();
-const ethereum = await MMSDK.getProvider(); // You can also access via window.ethereum
 
 export default {
   props: {
     lottoType: null,
     timeEnd: null,
     ticketsBoughtIncoming: null,
-    totalTicketsBoughtIncoming: null,
     totalPlsIncoming: null,
     winners: null,
   },
   data() {
     return {
-      currentAddress: window.ethereum.selectedAddress,
-      chainId: window.ethereum.chainId,
+      // currentAddress: window.ethereum.selectedAddress,
+      // chainId: window.ethereum.chainId,
       nextLotteryTime: null,
       timeLeft: null,
       ticketNum: 1,
       ticketsBought: this.ticketsBoughtIncoming,
-      totalTicketsBought: this.totalTicketsBoughtIncoming,
       totalPls: this.totalPlsIncoming,
       winnersList: this.winners,
     };
   },
   methods: {
     InitializePage() {
-      // this.chainId = window.ethereum.chainId;
       this.BeginCountdown(this.timeEnd);
       this.ShowWinnersListStrings();
+    },
+    async AccountFound() {
+        // console.log('metaMaskDownloaded ' + this.metaMaskDownloaded);
+        if (window.ethereum !== null && window.ethereum !== undefined) {
+          // console.log('accountNum ' + window.ethereum.selectedAddress);
+          // console.log('chainId ' + window.ethereum.chainId);
+          this.accountNum = window.ethereum.selectedAddress;
+          this.chainId = window.ethereum.chainId;
+        }
     },
     BeginCountdown(val) {
       let vm = this;
@@ -81,11 +85,10 @@ export default {
           vm.timeLeft = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
 
           // If the count down is over, write some text
-          if (distance < 0) {
+          if (distance < 5000) {
             clearInterval(x);
-            vm.timeLeft = "EXPIRED";
+            vm.timeLeft = "Calculating winner!!";
             vm.ticketsBought = 0;
-            vm.totalTicketsBought = 0;
             vm.totalPls = 0;
             vm.$emit("refreshLotto");
           }
@@ -94,7 +97,7 @@ export default {
     },
     async SendPulse() {
       let vm = this;
-      ethereum
+      window.ethereum
         .request({
           method: "eth_sendTransaction",
           params: [
@@ -158,15 +161,31 @@ export default {
     ticketsBoughtIncoming() {
       this.ticketsBought = this.ticketsBoughtIncoming;
     },
-    totalTicketsBoughtIncoming() {
-      this.totalTicketsBought = this.totalTicketsBoughtIncoming;
-    },
     totalPlsIncoming() {
       this.totalPls = this.totalPlsIncoming;
     },
     winners() {
       this.winnersList = this.winners;
       this.ShowWinnersListStrings();
+    },
+  },
+  computed: {
+    canBuyTickets() {
+      return this.timeLeft === 'Calculating winner!!' || this.currentAddress === null || this.chainId === null || this.chainId !== '0x171';
+    },
+    currentAddress() {
+      if (window.ethereum !== null && window.ethereum !== undefined) {
+        return window.ethereum.selectedAddress;
+      } else {
+        return null;
+      }
+    },
+    chainId() {
+      if (window.ethereum !== null && window.ethereum !== undefined) {
+        return window.ethereum.chainId;
+      } else {
+        return null;
+      }
     },
   },
   mounted() {
