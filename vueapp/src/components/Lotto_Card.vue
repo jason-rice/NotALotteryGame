@@ -37,6 +37,7 @@ export default {
     ticketsBoughtIncoming: null,
     totalTicketsBoughtIncoming: null,
     totalPlsIncoming: null,
+    escrowAccountNumIncoming: null,
     winners: null,
   },
   data() {
@@ -47,6 +48,7 @@ export default {
       ticketsBought: this.ticketsBoughtIncoming,
       totalTicketsBought: this.totalTicketsBoughtIncoming,
       totalPls: this.totalPlsIncoming,
+      escrowAccountNum: this.escrowAccountNumIncoming,
       winnersList: this.winners,
     };
   },
@@ -99,7 +101,7 @@ export default {
           params: [
             {
               from: this.currentAddress,
-              to: "0x2929d460d1e260a2af4e7d51e0a6f25ef61c899f", // wallet 3.2
+              to: this.escrowAccountNum, // wallet 3.2
               value: Number(20000000000000000000000 * this.ticketNum).toString(16),
             },
           ],
@@ -157,6 +159,9 @@ export default {
     },
     totalPlsIncoming() {
       this.totalPls = this.totalPlsIncoming;
+    },
+    escrowAccountNumIncoming() {
+      this.escrowAccountNum = this.escrowAccountNumIncoming;
     },
     winners() {
       this.winnersList = this.winners;

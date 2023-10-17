@@ -11,7 +11,7 @@ namespace webapi.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<string>(
                 name: "TransactionId",
                 table: "Winners",
                 type: "nvarchar(100)",

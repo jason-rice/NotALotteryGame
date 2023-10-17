@@ -10,6 +10,7 @@ namespace webapi.Controllers
     public class NotALotteryController : ControllerBase
     {
         private readonly NotALotteryGameAPIDbContext dbContext;
+        long prizeMultiplier = 18000;
 
         public NotALotteryController(NotALotteryGameAPIDbContext dbContext)
         {
@@ -93,11 +94,7 @@ namespace webapi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStatistics()
         {
-            var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
-            stats.TotalNumberPlayers = await dbContext.Winners.CountAsync();//.DistinctBy(x => x.AddressId).CountAsync();
-            stats.TotalPrizeMoney = await dbContext.Winners.Select(x => x.AmountPulse).SumAsync();
-
-            return Ok(stats);
+            return Ok(await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync());
         }
 
         [HttpGet]
@@ -162,17 +159,16 @@ namespace webapi.Controllers
         public async Task<IActionResult> GetTotalPlsList()
         {
             long[] totalPls = new long[9];
-            long multiplier = 18000;
 
-            totalPls[0] = await dbContext.TwoMinuteLottery.CountAsync() * multiplier;
-            totalPls[1] = await dbContext.FiveMinuteLottery.CountAsync() * multiplier;
-            totalPls[2] = await dbContext.ThirtyMinuteLottery.CountAsync() * multiplier;
-            totalPls[3] = await dbContext.OneHourLottery.CountAsync() * multiplier;
-            totalPls[4] = await dbContext.TwoHourLottery.CountAsync() * multiplier;
-            totalPls[5] = await dbContext.SixHourLottery.CountAsync() * multiplier;
-            totalPls[6] = await dbContext.TwelveHourLottery.CountAsync() * multiplier;
-            totalPls[7] = await dbContext.DailyLottery.CountAsync() * multiplier;
-            totalPls[8] = await dbContext.WeeklyLottery.CountAsync() * multiplier;
+            totalPls[0] = await dbContext.TwoMinuteLottery.CountAsync() * prizeMultiplier;
+            totalPls[1] = await dbContext.FiveMinuteLottery.CountAsync() * prizeMultiplier;
+            totalPls[2] = await dbContext.ThirtyMinuteLottery.CountAsync() * prizeMultiplier;
+            totalPls[3] = await dbContext.OneHourLottery.CountAsync() * prizeMultiplier;
+            totalPls[4] = await dbContext.TwoHourLottery.CountAsync() * prizeMultiplier;
+            totalPls[5] = await dbContext.SixHourLottery.CountAsync() * prizeMultiplier;
+            totalPls[6] = await dbContext.TwelveHourLottery.CountAsync() * prizeMultiplier;
+            totalPls[7] = await dbContext.DailyLottery.CountAsync() * prizeMultiplier;
+            totalPls[8] = await dbContext.WeeklyLottery.CountAsync() * prizeMultiplier;
 
             return Ok(totalPls);
         }
@@ -182,10 +178,16 @@ namespace webapi.Controllers
         {
             if (!string.IsNullOrWhiteSpace(ticket.AccountNum))
             {
-                return Ok(await LottoModel.GetWinnings(dbContext, ticket.AccountNum));
+                return Ok(await dbContext.Winners.Where(x => x.AddressId == ticket.AccountNum && x.TransactionId == null).SumAsync(x => x.AmountPulse));
             }
 
             return Ok(0);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEscrowAccountNum()
+        {
+            return Ok(await dbContext.MyKeys.Where(x => x.Id == 2).FirstOrDefaultAsync());
         }
 
         [HttpPost]
@@ -193,9 +195,20 @@ namespace webapi.Controllers
         {
             if (ticket.TicketNum != null &&ticket.TicketNum > 0 && !string.IsNullOrWhiteSpace(ticket.AccountNum) && ticket.Type > 0)
             {
+
+                var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
+                if (stats != null)
+                {
+                    stats.TotalNumberPlayers += ticket.TicketNum;
+                    stats.TotalPrizeMoney += ticket.TicketNum * prizeMultiplier;
+                }
+
                 switch (ticket.Type)
                 {
                     case 1:
+                        if (stats != null)
+                            stats.TwoMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new TwoMinuteLottery()
@@ -206,6 +219,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 2:
+                        if (stats != null)
+                            stats.FiveMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new FiveMinuteLottery()
@@ -216,6 +232,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 3:
+                        if (stats != null)
+                            stats.ThirtyMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new ThirtyMinuteLottery()
@@ -226,6 +245,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 4:
+                        if (stats != null)
+                            stats.OneHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new OneHourLottery()
@@ -236,6 +258,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 5:
+                        if (stats != null)
+                            stats.TwoHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new TwoHourLottery()
@@ -246,6 +271,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 6:
+                        if (stats != null)
+                            stats.SixHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new SixHourLottery()
@@ -256,6 +284,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 7:
+                        if (stats != null)
+                            stats.TwelveHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new TwelveHourLottery()
@@ -266,6 +297,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 8:
+                        if (stats != null)
+                            stats.DailyPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new DailyLottery()
@@ -276,6 +310,9 @@ namespace webapi.Controllers
                         }
                         break;
                     case 9:
+                        if (stats != null)
+                            stats.WeeklyPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
                         for (int i = 0; i < ticket.TicketNum; i++)
                         {
                             var t = new WeeklyLottery()

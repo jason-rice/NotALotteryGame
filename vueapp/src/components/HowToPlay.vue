@@ -105,8 +105,9 @@
             },
         },
         mounted() {
+            localStorage.removeItem('displayHowTo');
             if (localStorage.getItem('displayHowTo') === null) {
-                localStorage.setItem('displayHowTo', 'true');
+                localStorage.setItem('displayHowTo', 'false');
             }
             this.displayHowTo = localStorage.getItem('displayHowTo');
         }

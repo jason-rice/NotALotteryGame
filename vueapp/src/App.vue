@@ -32,6 +32,10 @@
                 <br>
                 <br>
             </div>
+            <div v-if="statistics !== null"><h4>Total winnings paid out so far!! {{ statistics.totalPrizeMoney }}</h4></div>
+            <br>
+            <div v-if="statistics !== null"><h4>Total tickets sold so far!! {{ statistics.totalNumberPlayers }}</h4></div>
+            <br>
             <div>
                 <h1 v-if="showMyPrizeMoney" style="color: lawngreen;">You've won {{ winningsTotalPulse }} of PLS!!! Congrats!!!</h1>
             </div>
@@ -50,6 +54,7 @@
                     :ticketsBoughtIncoming="ticketsBought[index]"
                     :totalTicketsBoughtIncoming="totalTicketsBought[index]"
                     :totalPlsIncoming="totalPlsList[index]"
+                    :escrowAccountNumIncoming="escrowAccountNum"
                     :winners="winnerLists[index]"
                     @refreshLotto="RefreshLotto()"
                 />
@@ -85,12 +90,14 @@ export default {
                 { id: 7, type: 'Twelve Hour Lotto' },
                 { id: 8, type: 'Daily Lotto' },
                 { id: 9, type: 'Weekly Lotto' },
+                // { id: 10, type: 'Powerball' },
             ],
             ticketsBought: null,
             totalTicketsBought: null,
             totalPlsList: null,
             winningsTotalPulse: null,
             statistics: null,
+            escrowAccountNum: null,
         };
     },
   components: {
@@ -106,15 +113,19 @@ export default {
         this.GetTotalTicketsBought();
         this.GetTotalPlsList();
         this.GetStatistics();
+        this.GetEscrowAccountNum();
 
         let vm = this;
         setInterval(function () {
             vm.GetTotalPlsList();
+            vm.GetStatistics();
+            vm.GetTotalTicketsBought();
+            vm.GetWinnerLists();
         }, 10000);
         
         setInterval(() => {
             this.GetLottoTimes();
-        }, 4000)
+        }, 3500)
     },
     async AccountFound() {
         if (window.ethereum !== null && window.ethereum !== undefined) {
@@ -290,6 +301,21 @@ export default {
             return;
         });
     },
+    async GetEscrowAccountNum() {
+        await fetch('api/NotALottery/GetEscrowAccountNum', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.escrowAccountNum = json.keyString;
+            } else {
+                this.escrowAccountNum = null;
+            }
+            return;
+        });
+    },
     async ClaimWinnings() {
         if (this.winningsTotalPulse === null || this.winningsTotalPulse === 0) {return;}
 
@@ -344,7 +370,15 @@ export default {
         return this.chainId !== this.pulseChainId || this.winningsTotalPulse === null || this.winningsTotalPulse === 0;
     },
     showLottos() {
-        return this.lottoTypes !== null && this.lottoTimes !== null && this.ticketsBought !== null && this.totalTicketsBought !== null && this.totalPlsList !== null && this.winnerLists !== null;
+      return (
+        this.lottoTypes !== null &&
+        this.lottoTimes !== null &&
+        this.ticketsBought !== null &&
+        this.totalTicketsBought !== null &&
+        this.totalPlsList !== null &&
+        this.winnerLists !== null &&
+        this.escrowAccountNum !== null
+      );
     },
     currentAddressDisplay() {
         if (this.currentAddress !== null) {
