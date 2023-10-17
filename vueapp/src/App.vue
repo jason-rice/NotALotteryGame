@@ -85,7 +85,6 @@ export default {
                 { id: 7, type: 'Twelve Hour Lotto' },
                 { id: 8, type: 'Daily Lotto' },
                 { id: 9, type: 'Weekly Lotto' },
-                // { id: 10, type: 'Powerball' },
             ],
             ticketsBought: null,
             totalTicketsBought: null,
@@ -108,10 +107,11 @@ export default {
         this.GetTotalPlsList();
         this.GetStatistics();
 
+        let vm = this;
         setInterval(function () {
-            this.GetTotalPlsList();
+            vm.GetTotalPlsList();
         }, 10000);
-
+        
         setInterval(() => {
             this.GetLottoTimes();
         }, 4000)
@@ -324,113 +324,6 @@ export default {
             this.GetTotalTicketsBought();
             this.GetWinnings(this.currentAddress);
         }, 5000)
-    },
-    async StartSignalR() {
-        // const connection = new signalR.HubConnectionBuilder()
-        // .withUrl("/chat")
-        // .configureLogging(signalR.LogLevel.Information)
-        // .build();
-
-        // connection.on("ReceiveMessage", (user, message) => {
-        //     console.log(`${user}: ${message}`);
-        // });
-
-        // connection.start()
-        //     .then(() => {
-        //         console.log("Connected to SignalR hub");
-        //     })
-        //     .catch(error => {
-        //         console.error(`SignalR connection error: ${error}`);
-        //     });
-
-
-
-
-        // communicationHub.client.on()
-
-        // let connection = new signalR.HubConnectionBuilder().withUrl("/communicationHub").build();
-        //// eslint-disable-next-line no-undef
-        //let connection = $.connection.communicationHub;
-
-        ////Disable the send button until connection is established.
-        //document.getElementById("sendButton").disabled = true;
-
-        // communicationHub.client.on("ReceiveMessage", function (user, message) {
-        //     var li = document.createElement("li");
-        //     document.getElementById("messagesList").appendChild(li);
-        //     // We can assign user-supplied strings to an element's textContent because it
-        //     // is not interpreted as markup. If you're assigning in any other way, you 
-        //     // should be aware of possible script injection concerns.
-        //     li.textContent = `${user} says ${message}`;
-        // });
-
-        // communicationHub.client.start().then(function () {
-        //     document.getElementById("sendButton").disabled = false;
-        // }).catch(function (err) {
-        //     return console.error(err.toString());
-        // });
-
-        // document.getElementById("sendButton").addEventListener("click", function (event) {
-        //     var user = document.getElementById("userInput").value;
-        //     var message = document.getElementById("messageInput").value;
-        //     communicationHub.client.invoke("SendMessage", user, message).catch(function (err) {
-        //         return console.error(err.toString());
-        //     });
-        //     event.preventDefault();
-        // });
-
-        // import communicationHub from './communicationHub';
-
-    // import * as signalR from "@aspnet/signalr";
-    // import { signalR } from 'vueapp/wwwroot/js/signalr/dist/browser/signalr.min.js';
-
-    // let connection = new signalR.HubConnectionBuilder().withUrl("/communicationHub").build();
-
-    // //Disable the send button until connection is established.
-    // document.getElementById("sendButton").disabled = true;
-
-    // connection.on("ReceiveMessage", function (user, message) {
-    //     var li = document.createElement("li");
-    //     document.getElementById("messagesList").appendChild(li);
-    //     // We can assign user-supplied strings to an element's textContent because it
-    //     // is not interpreted as markup. If you're assigning in any other way, you 
-    //     // should be aware of possible script injection concerns.
-    //     li.textContent = `${user} says ${message}`;
-    // });
-
-    // connection.start().then(function () {
-    //     document.getElementById("sendButton").disabled = false;
-    // }).catch(function (err) {
-    //     return console.error(err.toString());
-    // });
-
-    // document.getElementById("sendButton").addEventListener("click", function (event) {
-    //     var user = document.getElementById("userInput").value;
-    //     var message = document.getElementById("messageInput").value;
-    //     connection.invoke("SendMessage", user, message).catch(function (err) {
-    //         return console.error(err.toString());
-    //     });
-    //     event.preventDefault();
-    // });
-    
-    // const connection = new signalR.HubConnectionBuilder()
-    //     .withUrl("/chat")
-    //     .configureLogging(signalR.LogLevel.Information)
-    //     .build();
-
-    // connection.on("ReceiveMessage", (user, message) => {
-    //     console.log(`${user}: ${message}`);
-    // });
-
-    // connection.start()
-    //     .then(() => {
-    //         console.log("Connected to SignalR hub");
-    //     })
-    //     .catch(error => {
-    //         console.error(`SignalR connection error: ${error}`);
-    //     });
-
-    // // Implement sending messages to the server using connection.invoke
     },
     reload() {
         window.location.reload();
