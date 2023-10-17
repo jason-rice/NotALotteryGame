@@ -1,14 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Nethereum.Web3;
-using System.Net.Sockets;
-using System.Numerics;
-using System.Reflection;
 using webapi.Data;
 using webapi.Models;
-using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
-using Nethereum.Model;
 
 namespace webapi.Controllers
 {
@@ -95,6 +88,16 @@ namespace webapi.Controllers
 
                 return Ok(t);
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetStatistics()
+        {
+            var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
+            stats.TotalNumberPlayers = await dbContext.Winners.CountAsync();//.DistinctBy(x => x.AddressId).CountAsync();
+            stats.TotalPrizeMoney = await dbContext.Winners.Select(x => x.AmountPulse).SumAsync();
+
+            return Ok(stats);
         }
 
         [HttpGet]

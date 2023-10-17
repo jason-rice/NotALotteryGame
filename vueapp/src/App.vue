@@ -42,12 +42,13 @@
         </div>
 
         <div v-show="showPage">
-            <div class="row row-cols-1 row-cols-md-3 g-4" style="padding: 5% 10%;" v-if="showLottos">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" style="padding: 5% 10%;" v-if="showLottos">
                 <Lotto  
                     v-for="(t, index) in lottoTypes" :key="t"
                     :lottoType="lottoTypes[index]" 
                     :timeEnd="lottoTimes[index].dateAndTime"
                     :ticketsBoughtIncoming="ticketsBought[index]"
+                    :totalTicketsBoughtIncoming="totalTicketsBought[index]"
                     :totalPlsIncoming="totalPlsList[index]"
                     :winners="winnerLists[index]"
                     @refreshLotto="RefreshLotto()"
@@ -87,8 +88,10 @@ export default {
                 // { id: 10, type: 'Powerball' },
             ],
             ticketsBought: null,
+            totalTicketsBought: null,
             totalPlsList: null,
             winningsTotalPulse: null,
+            statistics: null,
         };
     },
   components: {
@@ -101,18 +104,20 @@ export default {
         this.GetLottoTimes();
         this.GetWinnerLists();
         this.GetTicketsBought(); // returns an array of 0's if no currentAddress
+        this.GetTotalTicketsBought();
         this.GetTotalPlsList();
+        this.GetStatistics();
 
-        let vm = this;
         setInterval(function () {
-            vm.GetTotalPlsList();
+            this.GetTotalPlsList();
         }, 10000);
+
+        setInterval(() => {
+            this.GetLottoTimes();
+        }, 4000)
     },
     async AccountFound() {
-        // console.log('metaMaskDownloaded ' + this.metaMaskDownloaded);
         if (window.ethereum !== null && window.ethereum !== undefined) {
-            // console.log('currentAddress ' + window.ethereum.selectedAddress);
-            // console.log('chainId ' + window.ethereum.chainId);
             this.currentAddress = window.ethereum.selectedAddress;
             this.chainId = window.ethereum.chainId;
 
@@ -184,8 +189,7 @@ export default {
                 console.error(err);
             }
             });
-        const account = accounts[0];
-        this.currentAddress = account;
+        this.currentAddress = accounts[0];
     },
     async GetLottoTimes() {
         await fetch('api/NotALottery/GetLottoTimes', {
@@ -260,6 +264,32 @@ export default {
             return;
         });
     },
+    async GetTotalTicketsBought() {
+        await fetch('api/NotALottery/GetTotalTicketsBought', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            this.totalTicketsBought = json;
+            return;
+        });
+    },
+    async GetStatistics() {
+        await fetch('api/NotALottery/GetStatistics', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.statistics = json;
+            } else {
+                this.statistics = null;
+            }
+            return;
+        });
+    },
     async ClaimWinnings() {
         if (this.winningsTotalPulse === null || this.winningsTotalPulse === 0) {return;}
 
@@ -288,16 +318,119 @@ export default {
             return;
         });
     },
-    async RefreshLottoTimes() {
-        setInterval(() => {
-            this.GetLottoTimes();
-        }, 2500)
-    },
     async RefreshLotto() {
         setTimeout(() => {
             this.GetWinnerLists();
+            this.GetTotalTicketsBought();
             this.GetWinnings(this.currentAddress);
         }, 5000)
+    },
+    async StartSignalR() {
+        // const connection = new signalR.HubConnectionBuilder()
+        // .withUrl("/chat")
+        // .configureLogging(signalR.LogLevel.Information)
+        // .build();
+
+        // connection.on("ReceiveMessage", (user, message) => {
+        //     console.log(`${user}: ${message}`);
+        // });
+
+        // connection.start()
+        //     .then(() => {
+        //         console.log("Connected to SignalR hub");
+        //     })
+        //     .catch(error => {
+        //         console.error(`SignalR connection error: ${error}`);
+        //     });
+
+
+
+
+        // communicationHub.client.on()
+
+        // let connection = new signalR.HubConnectionBuilder().withUrl("/communicationHub").build();
+        //// eslint-disable-next-line no-undef
+        //let connection = $.connection.communicationHub;
+
+        ////Disable the send button until connection is established.
+        //document.getElementById("sendButton").disabled = true;
+
+        // communicationHub.client.on("ReceiveMessage", function (user, message) {
+        //     var li = document.createElement("li");
+        //     document.getElementById("messagesList").appendChild(li);
+        //     // We can assign user-supplied strings to an element's textContent because it
+        //     // is not interpreted as markup. If you're assigning in any other way, you 
+        //     // should be aware of possible script injection concerns.
+        //     li.textContent = `${user} says ${message}`;
+        // });
+
+        // communicationHub.client.start().then(function () {
+        //     document.getElementById("sendButton").disabled = false;
+        // }).catch(function (err) {
+        //     return console.error(err.toString());
+        // });
+
+        // document.getElementById("sendButton").addEventListener("click", function (event) {
+        //     var user = document.getElementById("userInput").value;
+        //     var message = document.getElementById("messageInput").value;
+        //     communicationHub.client.invoke("SendMessage", user, message).catch(function (err) {
+        //         return console.error(err.toString());
+        //     });
+        //     event.preventDefault();
+        // });
+
+        // import communicationHub from './communicationHub';
+
+    // import * as signalR from "@aspnet/signalr";
+    // import { signalR } from 'vueapp/wwwroot/js/signalr/dist/browser/signalr.min.js';
+
+    // let connection = new signalR.HubConnectionBuilder().withUrl("/communicationHub").build();
+
+    // //Disable the send button until connection is established.
+    // document.getElementById("sendButton").disabled = true;
+
+    // connection.on("ReceiveMessage", function (user, message) {
+    //     var li = document.createElement("li");
+    //     document.getElementById("messagesList").appendChild(li);
+    //     // We can assign user-supplied strings to an element's textContent because it
+    //     // is not interpreted as markup. If you're assigning in any other way, you 
+    //     // should be aware of possible script injection concerns.
+    //     li.textContent = `${user} says ${message}`;
+    // });
+
+    // connection.start().then(function () {
+    //     document.getElementById("sendButton").disabled = false;
+    // }).catch(function (err) {
+    //     return console.error(err.toString());
+    // });
+
+    // document.getElementById("sendButton").addEventListener("click", function (event) {
+    //     var user = document.getElementById("userInput").value;
+    //     var message = document.getElementById("messageInput").value;
+    //     connection.invoke("SendMessage", user, message).catch(function (err) {
+    //         return console.error(err.toString());
+    //     });
+    //     event.preventDefault();
+    // });
+    
+    // const connection = new signalR.HubConnectionBuilder()
+    //     .withUrl("/chat")
+    //     .configureLogging(signalR.LogLevel.Information)
+    //     .build();
+
+    // connection.on("ReceiveMessage", (user, message) => {
+    //     console.log(`${user}: ${message}`);
+    // });
+
+    // connection.start()
+    //     .then(() => {
+    //         console.log("Connected to SignalR hub");
+    //     })
+    //     .catch(error => {
+    //         console.error(`SignalR connection error: ${error}`);
+    //     });
+
+    // // Implement sending messages to the server using connection.invoke
     },
     reload() {
         window.location.reload();
@@ -318,7 +451,7 @@ export default {
         return this.chainId !== this.pulseChainId || this.winningsTotalPulse === null || this.winningsTotalPulse === 0;
     },
     showLottos() {
-        return this.lottoTypes !== null && this.lottoTimes !== null && this.ticketsBought !== null && this.totalPlsList !== null && this.winnerLists !== null;
+        return this.lottoTypes !== null && this.lottoTimes !== null && this.ticketsBought !== null && this.totalTicketsBought !== null && this.totalPlsList !== null && this.winnerLists !== null;
     },
     currentAddressDisplay() {
         if (this.currentAddress !== null) {
@@ -334,7 +467,6 @@ export default {
     }, 1000)
 
     this.InitializePage();
-    this.RefreshLottoTimes();
   },
 }
 </script>

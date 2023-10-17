@@ -42,6 +42,10 @@ namespace webapi.Models
                 {
                     win.TransactionId = transaction.TransactionHash;
                 }
+
+                var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
+                stats.TotalPrizeMoney += amount;
+
                 await dbContext.SaveChangesAsync();
             }
             return 0;

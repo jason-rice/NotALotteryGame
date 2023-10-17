@@ -1,4 +1,6 @@
-﻿namespace webapi.Models
+﻿using webapi.Data;
+
+namespace webapi.Models
 {
     public class RunLotto
     {

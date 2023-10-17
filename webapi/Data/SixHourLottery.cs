@@ -1,6 +1,6 @@
-﻿namespace webapi.Models
+﻿namespace webapi.Data
 {
-    public class DailyLottery
+    public class SixHourLottery
     {
         public long Id { get; set; }
         public required string AddressId { get; set; }

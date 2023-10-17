@@ -63,9 +63,10 @@
                         <div class="row my-font-size-small">Nothing on this website should be considered as advice of any kind. For legal, financial, or medical matters, it is recommended to consult with the appropriate professionals.</div>
                         <br>
                         <div class="row my-font-size-small">You acknowledge that your use of the website is solely at your own discretion, volition, and risk.</div>
+                        <br>
+                        <div><input type="checkbox" v-model="iAgree"> I am 18+ years old, and I accept the terms of service provided</div>
                     </div>
                     <div class="modal-footer">
-                        <div><input type="checkbox" v-model="iAgree"> I am 18+ years old, and I accept the terms of service provided</div>
                         <div><button type="button" class="btn btn-primary" data-bs-dismiss="modal" :disabled="!iAgree" @click="ShowHideIntructions(false)">Continue</button></div>
                     </div>
                 </div>

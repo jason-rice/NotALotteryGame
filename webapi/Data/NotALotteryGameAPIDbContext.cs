@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using webapi.Models;
 
 namespace webapi.Data
 {
@@ -23,5 +22,6 @@ namespace webapi.Data
         public DbSet<WeeklyLottery> WeeklyLottery { get; set; }
         public DbSet<LottoTimes> LottoTimes { get; set; }
         public DbSet<Winners> Winners { get; set; }
+        public DbSet<Statistics> Statistics { get; set; }
     }
 }
