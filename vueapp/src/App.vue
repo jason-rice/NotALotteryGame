@@ -7,10 +7,15 @@
                     <h4 class="inline">Not A Lottery</h4>
                 </a>
                 <div class="collapse navbar-collapse d-flex justify-content-center" id="collapsibleNavbar">
-                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'LottoPage' ? 'highlight-btn' : '']" type="button"  @click="SetPage('LottoPage')">
+                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'LottoPage' ? 'highlight-btn' : '']"
+                            type="button"
+                            @click="SetPage('LottoPage')"
+                            style="margin-right: 20px;">
                         Lottery
                     </button>
-                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'PowerballPage' ? 'highlight-btn' : '']" type="button"  @click="SetPage('PowerballPage')">
+                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'PowerballPage' ? 'highlight-btn' : '']" 
+                            type="button"  
+                            @click="SetPage('PowerballPage')">
                         Powerball
                     </button>
                 </div>
@@ -46,13 +51,20 @@
                 <br>
                 <div v-if="statistics !== null"><h4>Total tickets sold so far: {{ statistics.totalNumberPlayersDisplay }}</h4></div>
                 <br>
-                <div>
-                    <h1 v-if="showMyPrizeMoney" style="color: lawngreen;">You've won {{ winningsTotalPulse }} of PLS!!! Congrats!!!</h1>
+                <div v-if="showMyPrizeMoney">
+                    <h1 style="color: lawngreen;">You've won {{ winningsTotalPulse }} of PLS!!! Congrats!!!</h1>
                 </div>
                 <div>
                     <button type="button" class="btn btn-success" @click="ClaimWinnings()" :disabled="canClaimPrize">Claim All Winnings!!!</button>
                 </div>
                 <br />
+                <br>
+                <div>
+                    <p>How do you know we are legit? Here's the link to the code! Go look for yourself. It's open to the public. If there was a problem, you could look into it for yourself. The winners are chosen fairly. <a href="https://github.com/jason-rice/NotALotteryGame" style="color: deepskyblue;">Not A Lottery GitHub Repository</a></p>
+                    <p>Who are we? We joined the crypto wave back in 2020. We first got into bitcoin and ethereum, like everyone else. We quickly discovered Richard Heart and the HEX ecosystem. We fell in love with the pricinples of this ecosystem. From decentralization, to freedom, to individual sovereignty and the live and the let live mentality. We believe in the golden rule. Treat others as you wish to be treated. We ditched the other coins we owned and aped into HEX. We sacrificed for PulseX. We were there day 1 of the PulseChain launch. We've been quitely watching and participating in the background. We finally decided we could contribute to this PulseChain ecosystem in a positive and meaningful way. We've seen rug pulls and bad projects get hacked. Lots of people have lost a lot of money on sub par projects. We can do better. This project is an attempt to bring adoption and awareness to PulseChain. This is supposed to be a fun game that countributes to this community that we love.</p>
+                    <p>The head developer has been a professional senior software engineer for nearly a decade now. He works in the Microsoft stack and with Vue.js primarily. He has worked with many projects, but there's one in particular that should stand out to anyone concerning this project. He built the functionality on the front end, backend, and in the database, for the giving plaform for a large SASS company. More than $150 million dollars a year passes through the software he built, every year, from companies and individuals worldwide. He custom built all of the code for his company to communicate with the payment providers.</p>
+                    <p>This is not our first rodeo! We have a lot more on the way. We're adding to this project and building another, exciting project, that we hope to launch soon!! Stay tuned! Have fun and enjoy our project!!!</p>
+                </div>
             </div>
 
         </div>
@@ -77,9 +89,10 @@
                 </div>
             </div>
         </div>
+
         <div v-if="page === 'PowerballPage'">
             <div class="page-header">
-                <h1>this is the power ball!!!</h1>
+                <h1>Powerball coming soon!!!</h1>
             </div>
         </div>
         
