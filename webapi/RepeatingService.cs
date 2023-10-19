@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using webapi.Data;
 using webapi.Models;
 
@@ -8,6 +7,7 @@ namespace webapi
     public class RepeatingService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
+        public static long prizeMultiplier = 18000;
 
         //private readonly static int numHours = -5; // production
         private readonly static int numHours = 0; // development
@@ -196,7 +196,7 @@ namespace webapi
 
         private static void RunLotto2(NotALotteryGameAPIDbContext dbContext, string winnerAddress, int type, int numTickets)
         {
-            long total = numTickets * 18000;
+            long total = numTickets * prizeMultiplier;
             var winner = new Winners()
             {
                 Id = Guid.NewGuid(),

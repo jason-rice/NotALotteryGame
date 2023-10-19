@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using System.Numerics;
 using webapi.Data;
 
 namespace webapi.Models
@@ -40,6 +38,168 @@ namespace webapi.Models
 
                 await dbContext.SaveChangesAsync();
             }
+            return 0;
+        }
+
+        public static async Task<int> BuyTickets(NotALotteryGameAPIDbContext dbContext, TicketOrder ticket, long prizeMultiplier)
+        {
+            if (ticket.TicketNum != null && ticket.TicketNum > 0 && !string.IsNullOrWhiteSpace(ticket.AccountNum) && ticket.Type > 0)
+            {
+
+                var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
+                if (stats != null)
+                {
+                    stats.TotalNumberPlayers += ticket.TicketNum;
+                    stats.TotalPrizeMoney += ticket.TicketNum * prizeMultiplier;
+                }
+
+                switch (ticket.Type)
+                {
+                    case 1:
+                        if (stats != null)
+                            stats.TwoMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new TwoMinuteLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.TwoMinuteLottery.AddAsync(t);
+                        }
+                        break;
+                    case 2:
+                        if (stats != null)
+                            stats.FiveMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new FiveMinuteLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.FiveMinuteLottery.AddAsync(t);
+                        }
+                        break;
+                    case 3:
+                        if (stats != null)
+                            stats.ThirtyMinutePrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new ThirtyMinuteLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.ThirtyMinuteLottery.AddAsync(t);
+                        }
+                        break;
+                    case 4:
+                        if (stats != null)
+                            stats.OneHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new OneHourLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.OneHourLottery.AddAsync(t);
+                        }
+                        break;
+                    case 5:
+                        if (stats != null)
+                            stats.TwoHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new TwoHourLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.TwoHourLottery.AddAsync(t);
+                        }
+                        break;
+                    case 6:
+                        if (stats != null)
+                            stats.SixHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new SixHourLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.SixHourLottery.AddAsync(t);
+                        }
+                        break;
+                    case 7:
+                        if (stats != null)
+                            stats.TwelveHourPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new TwelveHourLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.TwelveHourLottery.AddAsync(t);
+                        }
+                        break;
+                    case 8:
+                        if (stats != null)
+                            stats.DailyPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new DailyLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.DailyLottery.AddAsync(t);
+                        }
+                        break;
+                    case 9:
+                        if (stats != null)
+                            stats.WeeklyPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                        for (int i = 0; i < ticket.TicketNum; i++)
+                        {
+                            var t = new WeeklyLottery()
+                            {
+                                AddressId = ticket.AccountNum,
+                            };
+                            await dbContext.WeeklyLottery.AddAsync(t);
+                        }
+                        break;
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                switch (ticket.Type)
+                {
+                    case 1:
+                        return await dbContext.TwoMinuteLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 2:
+                        return await dbContext.FiveMinuteLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 3:
+                        return await dbContext.ThirtyMinuteLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 4:
+                        return await dbContext.OneHourLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 5:
+                        return await dbContext.TwoHourLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 6:
+                        return await dbContext.SixHourLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 7:
+                        return await dbContext.TwelveHourLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 8:
+                        return await dbContext.DailyLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                    case 9:
+                        return await dbContext.WeeklyLottery.Where(x => x.AddressId == ticket.AccountNum).CountAsync();
+                }
+                return 0;
+            }
+
             return 0;
         }
     }

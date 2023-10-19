@@ -27,7 +27,6 @@
   </div>
 </template>
 
-
 <script>
 
 export default {
@@ -47,7 +46,7 @@ export default {
       ticketNum: 1,
       ticketsBought: this.ticketsBoughtIncoming,
       totalTicketsBought: this.totalTicketsBoughtIncoming,
-      totalPls: this.totalPlsIncoming,
+      totalPls: this.totalPlsIncoming.toLocaleString('en-US', { minimumFractionDigits: 0 }),
       escrowAccountNum: this.escrowAccountNumIncoming,
       winnersList: this.winners,
     };
@@ -126,7 +125,11 @@ export default {
         .then((r) => r.json())
         .then((json) => {
           if (json.status !== 400) {
+            if (json > 0) {
               this.ticketsBought = json;
+            } else {
+              console.log("error during buy");
+            }
           } else {
               this.ticketsBought = 0;
           }
@@ -158,7 +161,7 @@ export default {
       this.totalTicketsBought = this.totalTicketsBoughtIncoming;
     },
     totalPlsIncoming() {
-      this.totalPls = this.totalPlsIncoming;
+      this.totalPls = this.totalPlsIncoming.toLocaleString('en-US', { minimumFractionDigits: 0 });
     },
     escrowAccountNumIncoming() {
       this.escrowAccountNum = this.escrowAccountNumIncoming;

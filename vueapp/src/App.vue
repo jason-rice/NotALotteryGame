@@ -2,62 +2,84 @@
     <div class="center">
         <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
             <div class="container-fluid">
-                <a class="navbar-brand" href="https://localhost:5002/">
-                    <img src="smallcoins2.png" style="margin-right: 10px;"> Not A Lottery
+                <a class="navbar-brand pointer" @click="SetPage('HomePage')">
+                    <img src="smallcoins2.png" style="margin: 0px 20px;">
+                    <h4 class="inline">Not A Lottery</h4>
                 </a>
+                <div class="collapse navbar-collapse d-flex justify-content-center" id="collapsibleNavbar">
+                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'LottoPage' ? 'highlight-btn' : '']" type="button"  @click="SetPage('LottoPage')">
+                        Lottery
+                    </button>
+                    <button :class="['btn', 'btn-outline-secondary', 'white', page === 'PowerballPage' ? 'highlight-btn' : '']" type="button"  @click="SetPage('PowerballPage')">
+                        Powerball
+                    </button>
+                </div>
                 <button v-if="currentAddress === null" @click="ConnectMetaMask()" type="button" class="btn btn-dark connect-btn">Connect MetaMask</button>
                 <button v-else type="button" class="btn btn-dark connected-btn">{{ currentAddressDisplay }}</button>
             </div>
         </nav>
         
-        <div class="page-header" v-show="showPage">
-            <div>
-                <h3>Invite your friends! The more that play, the bigger the prize!</h3>
+        <div v-if="page === 'HomePage'">
+            <div class="page-header" v-show="showPage">
+                <div>
+                    <h3>Invite your friends! The more that play, the bigger the prize!</h3>
+                    <br>
+                    <HowToPlay></HowToPlay>
+                </div>
                 <br>
-                <HowToPlay></HowToPlay>
-            </div>
-            <br>
-            <div v-if="metaMaskDownloaded === false || chainId !== pulseChainId || currentAddress === null">
-                <h1 style="color:orangered">You must be on the PulseChain network to play this game!</h1>
-                <a v-show="metaMaskDownloaded === false" href="https://metamask.io/download/" target="_blank" class="download-mm-btn">Download MetaMask?</a>
-                <button v-show="metaMaskDownloaded !== false && currentAddress === null" 
-                    type="button" class="btn btn-warning" @click="ConnectMetaMask()">
-                    Connect MetaMask
-                </button>
-                <button v-show="metaMaskDownloaded !== false && currentAddress !== null && chainId !== pulseChainId" 
-                    type="button" class="btn btn-warning" @click="AddPulseChainToMetaMaskOrSwitchToPulseChain()">
-                    Switch to PulseChain?
-                </button>
+                <div v-if="metaMaskDownloaded === false || chainId !== pulseChainId || currentAddress === null">
+                    <h1 style="color:orangered">You must be on the PulseChain network to play this game!</h1>
+                    <a v-show="metaMaskDownloaded === false" href="https://metamask.io/download/" target="_blank" class="download-mm-btn">Download MetaMask?</a>
+                    <button v-show="metaMaskDownloaded !== false && currentAddress === null" 
+                        type="button" class="btn btn-warning" @click="ConnectMetaMask()">
+                        Connect MetaMask
+                    </button>
+                    <button v-show="metaMaskDownloaded !== false && currentAddress !== null && chainId !== pulseChainId" 
+                        type="button" class="btn btn-warning" @click="AddPulseChainToMetaMaskOrSwitchToPulseChain()">
+                        Switch to PulseChain?
+                    </button>
+                    <br>
+                    <br>
+                    <br>
+                </div>
+                <div v-if="statistics !== null"><h4>Total winnings paid out so far: {{ statistics.totalPrizeMoneyDisplay }} PLS</h4></div>
                 <br>
+                <div v-if="statistics !== null"><h4>Total tickets sold so far: {{ statistics.totalNumberPlayersDisplay }}</h4></div>
                 <br>
-                <br>
+                <div>
+                    <h1 v-if="showMyPrizeMoney" style="color: lawngreen;">You've won {{ winningsTotalPulse }} of PLS!!! Congrats!!!</h1>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-success" @click="ClaimWinnings()" :disabled="canClaimPrize">Claim All Winnings!!!</button>
+                </div>
+                <br />
             </div>
-            <div v-if="statistics !== null"><h4>Total winnings paid out so far!! {{ statistics.totalPrizeMoney }}</h4></div>
-            <br>
-            <div v-if="statistics !== null"><h4>Total tickets sold so far!! {{ statistics.totalNumberPlayers }}</h4></div>
-            <br>
-            <div>
-                <h1 v-if="showMyPrizeMoney" style="color: lawngreen;">You've won {{ winningsTotalPulse }} of PLS!!! Congrats!!!</h1>
-            </div>
-            <div>
-                <button type="button" class="btn btn-success" @click="ClaimWinnings()" :disabled="canClaimPrize">Claim All Winnings!!!</button>
-            </div>
-            <br />
-        </div>
 
-        <div v-show="showPage">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" style="padding: 5% 10%;" v-if="showLottos">
-                <Lotto  
-                    v-for="(t, index) in lottoTypes" :key="t"
-                    :lottoType="lottoTypes[index]" 
-                    :timeEnd="lottoTimes[index].dateAndTime"
-                    :ticketsBoughtIncoming="ticketsBought[index]"
-                    :totalTicketsBoughtIncoming="totalTicketsBought[index]"
-                    :totalPlsIncoming="totalPlsList[index]"
-                    :escrowAccountNumIncoming="escrowAccountNum"
-                    :winners="winnerLists[index]"
-                    @refreshLotto="RefreshLotto()"
-                />
+        </div>
+        
+        <div v-if="page === 'LottoPage'">
+            <div class="page-header" v-show="showPage">
+                <p>These are the lotteries you can join. Just buy one or more tickets, for 20,000 PLS tokens each!</p>
+                <p>When the time runs out, a winner is randomly chosen by the Microsoft c# random number generator.</p>
+                <p>For proof that the winner is chosen fairly, you can look at this code that runs the lottery. <a href="https://github.com/jason-rice/NotALotteryGame/blob/master/webapi/RepeatingService.cs" style="color: deepskyblue;"> Proof of fairness</a></p>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" style="padding: 5% 10%;" v-if="showLottos">
+                    <Lotto  
+                        v-for="(t, index) in lottoTypes" :key="t"
+                        :lottoType="lottoTypes[index]" 
+                        :timeEnd="lottoTimes[index].dateAndTime"
+                        :ticketsBoughtIncoming="ticketsBought[index]"
+                        :totalTicketsBoughtIncoming="totalTicketsBought[index]"
+                        :totalPlsIncoming="totalPlsList[index]"
+                        :escrowAccountNumIncoming="escrowAccountNum"
+                        :winners="winnerLists[index]"
+                        @refreshLotto="RefreshLotto()"
+                    />
+                </div>
+            </div>
+        </div>
+        <div v-if="page === 'PowerballPage'">
+            <div class="page-header">
+                <h1>this is the power ball!!!</h1>
             </div>
         </div>
         
@@ -76,6 +98,7 @@ export default {
         return {
             currentAddress: null,
             chainId: null,
+            page: 'HomePage',
             showPage: false,
             pulseChainId: '0x171',
             lottoTimes: null,
@@ -107,6 +130,12 @@ export default {
   },
   methods: {
     InitializePage() { // don't need currentAddress for these
+        this.page = localStorage.getItem('notalotteryapp');
+        if (this.page === null) {
+            this.page = "HomePage";
+            localStorage.setItem('notalotteryapp', "HomePage");
+        }
+        
         this.GetLottoTimes();
         this.GetWinnerLists();
         this.GetTicketsBought(); // returns an array of 0's if no currentAddress
@@ -141,6 +170,10 @@ export default {
             } 
         }
         this.showPage = true;
+    },
+    SetPage(value) {
+        this.page = value;
+        localStorage.setItem('notalotteryapp', value);
     },
     async AddPulseChainToMetaMaskOrSwitchToPulseChain() {
         try {
@@ -295,6 +328,8 @@ export default {
         .then(json => {
             if (json.status !== 400) {
                 this.statistics = json;
+                this.statistics.totalPrizeMoneyDisplay = this.statistics.totalPrizeMoney.toLocaleString('en-US', { minimumFractionDigits: 0 });
+                this.statistics.totalNumberPlayersDisplay = this.statistics.totalNumberPlayers.toLocaleString('en-US', { minimumFractionDigits: 0 });
             } else {
                 this.statistics = null;
             }
@@ -410,10 +445,23 @@ export default {
 .center {
     text-align: center;
 }
+.white {
+    color: white;
+}
+.highlight-btn {
+    background-color: #6c757d;
+    border: 1px solid white;
+}
+.pointer {
+    cursor: pointer;
+}
+.inline {
+    display: inline-block;
+}
 .page-header {
     margin-top: 20vh;
-    color: white;
     padding: 0px 30px;
+    color: white;
 }
 @media (min-width: 768px) { 
     .page-header {
