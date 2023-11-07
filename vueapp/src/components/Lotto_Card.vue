@@ -117,7 +117,7 @@ export default {
           TxHash: txHash,
         };
 
-        await fetch("api/NotALottery/BuyTickets", {
+        await fetch("api/NotALottery/BuyLottoTickets", {
           method: "POST",
           body: JSON.stringify(payload),
           headers: { "Content-type": "application/json; charset=UTF-8" },
@@ -127,6 +127,7 @@ export default {
           if (json.status !== 400) {
             if (json > 0) {
               this.ticketsBought = json;
+                this.$emit("youBoughtLotto");
             } else {
               console.log("error during buy");
             }
@@ -138,9 +139,11 @@ export default {
       }
     },
     ShowWinnersListStrings() {
-      this.winnersList.forEach(winner => {
-        winner.displayString = winner.addressId.slice(0, 5) + '...' + winner.addressId.slice(winner.addressId.length - 5, winner.addressId.length);
-      });
+      if (this.winnersList !== undefined && this.winnersList.length > 0) {
+        this.winnersList.forEach(winner => {
+          winner.displayString = winner.addressId.slice(0, 5) + '...' + winner.addressId.slice(winner.addressId.length - 5, winner.addressId.length);
+        });
+      }
     }
   },
   watch: {

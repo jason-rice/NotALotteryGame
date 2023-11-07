@@ -6,7 +6,7 @@
                     <img src="smallcoins2.png" style="margin: 0px 20px;">
                     <h4 class="inline">Not A Lottery</h4>
                 </a>
-                <div class="collapse navbar-collapse d-flex justify-content-center" id="collapsibleNavbar">
+                <div class="collapse navbar-collapse d-flex justify-content-center my-navbar-btns" id="collapsibleNavbar">
                     <button :class="['btn', 'btn-outline-secondary', 'white', page === 'LottoPage' ? 'highlight-btn' : '']"
                             type="button"
                             @click="SetPage('LottoPage')"
@@ -19,8 +19,10 @@
                         Powerball
                     </button>
                 </div>
-                <button v-if="currentAddress === null" @click="ConnectMetaMask()" type="button" class="btn btn-dark connect-btn">Connect MetaMask</button>
-                <button v-else type="button" class="btn btn-dark connected-btn">{{ currentAddressDisplay }}</button>
+                <div class="collapse navbar-collapse d-flex justify-content-end my-navbar-btns" id="collapsibleNavbar">
+                    <button v-if="currentAddress === null" @click="ConnectMetaMask()" type="button" class="btn btn-dark connect-btn">Connect MetaMask</button>
+                    <button v-else type="button" class="btn btn-dark connected-btn">{{ currentAddressDisplay }}</button>
+                </div>
             </div>
         </nav>
         
@@ -60,10 +62,37 @@
                 <br />
                 <br>
                 <div>
-                    <p>How do you know we are legit? Here's the link to the code! Go look for yourself. It's open to the public. If there was a problem, you could look into it for yourself. The winners are chosen fairly. <a href="https://github.com/jason-rice/NotALotteryGame" style="color: deepskyblue;">Not A Lottery GitHub Repository</a></p>
-                    <p>Who are we? We joined the crypto wave back in 2020. We first got into bitcoin and ethereum, like everyone else. We quickly discovered Richard Heart and the HEX ecosystem. We fell in love with the pricinples of this ecosystem. From decentralization, to freedom, to individual sovereignty and the live and the let live mentality. We believe in the golden rule. Treat others as you wish to be treated. We ditched the other coins we owned and aped into HEX. We sacrificed for PulseX. We were there day 1 of the PulseChain launch. We've been quitely watching and participating in the background. We finally decided we could contribute to this PulseChain ecosystem in a positive and meaningful way. We've seen rug pulls and bad projects get hacked. Lots of people have lost a lot of money on sub par projects. We can do better. This project is an attempt to bring adoption and awareness to PulseChain. This is supposed to be a fun game that countributes to this community that we love.</p>
-                    <p>The head developer has been a professional senior software engineer for nearly a decade now. He works in the Microsoft stack and with Vue.js primarily. He has worked with many projects, but there's one in particular that should stand out to anyone concerning this project. He built the functionality on the front end, backend, and in the database, for the giving plaform for a large SASS company. More than $150 million dollars a year passes through the software he built, every year, from companies and individuals worldwide. He custom built all of the code for his company to communicate with the payment providers.</p>
-                    <p>This is not our first rodeo! We have a lot more on the way. We're adding to this project and building another, exciting project, that we hope to launch soon!! Stay tuned! Have fun and enjoy our project!!!</p>
+                    <p>How do you know we are legit? Here's the link to the code! Go look for yourself. It's open 
+                        to the public. The winners are chosen fairly. 
+                        <a href="https://github.com/jason-rice/NotALotteryGame" style="color: deepskyblue;">
+                            Not A Lottery GitHub Repository
+                        </a>
+                    </p>
+                    <p>This project is an attempt to bring adoption and awareness to PulseChain. This is supposed 
+                        to be a fun game that countributes to this community that we love.
+                    </p>
+                    <p>Who are we? We joined the crypto wave back in 2020. We first got into bitcoin and ethereum, 
+                        like everyone else. We quickly discovered Richard Heart and the HEX ecosystem. We fell in 
+                        love with the pricinples of this ecosystem. From decentralization, to freedom, to individual 
+                        sovereignty and the live and the let live mentality. We believe in the golden rule. Treat 
+                        others as you wish to be treated. We ditched the other coins we owned and aped into HEX. We 
+                        sacrificed for PulseX. We were there day 1 of the PulseChain launch. We've been quitely 
+                        watching and participating in the background. We finally decided we could contribute to this 
+                        PulseChain ecosystem in a positive and meaningful way. We've seen rug pulls and bad projects 
+                        get hacked. Lots of people have lost a lot of money on sub par projects. We can do better.
+                    </p>
+                    <p>The head developer has been a professional senior software engineer for nearly a decade now. 
+                        He works in the Microsoft stack and with Vue.js primarily. He has worked with many projects, 
+                        but there's one in particular that should stand out to anyone concerning this project. He 
+                        built the functionality on the front end, backend, and in the database, for the giving plaform 
+                        for a large SASS company. More than $150 million dollars a year passes through the software he 
+                        built, from companies and individuals worldwide. He custom built all of the code 
+                        for his company to communicate with the payment providers.
+                    </p>
+                    <p>This is not our first rodeo! We have a lot more on the way. We're adding to this project and 
+                        building another, exciting project, that we hope to launch soon!! Stay tuned! Have fun and 
+                        enjoy our project!!!
+                    </p>
                 </div>
             </div>
 
@@ -74,16 +103,21 @@
                 <p>These are the lotteries you can join. Just buy one or more tickets, for 20,000 PLS tokens each!</p>
                 <p>When the time runs out, a winner is randomly chosen by the Microsoft c# random number generator.</p>
                 <p>For proof that the winner is chosen fairly, you can look at this code that runs the lottery. <a href="https://github.com/jason-rice/NotALotteryGame/blob/master/webapi/RepeatingService.cs" style="color: deepskyblue;"> Proof of fairness</a></p>
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" style="padding: 5% 10%;" v-if="showLottos">
-                    <Lotto  
-                        v-for="(t, index) in lottoTypes" :key="t"
+                <div>
+                    <h1 style="color: lawngreen;" v-if="youBoughtLottoTicket === true">
+                        Congratulations!! You've entered the lottery!!
+                    </h1>
+                </div>
+                <div v-if="showLottos" class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" style="padding: 5% 10%;">
+                    <Lotto v-for="(t, index) in lottoTypes" :key="t"
                         :lottoType="lottoTypes[index]" 
                         :timeEnd="lottoTimes[index].dateAndTime"
                         :ticketsBoughtIncoming="ticketsBought[index]"
                         :totalTicketsBoughtIncoming="totalTicketsBought[index]"
                         :totalPlsIncoming="totalPlsList[index]"
                         :escrowAccountNumIncoming="escrowAccountNum"
-                        :winners="winnerLists[index]"
+                        :winners="lottoWinnerLists[index]"
+                        @youBoughtLotto="BoughtLotto()"
                         @refreshLotto="RefreshLotto()"
                     />
                 </div>
@@ -92,7 +126,36 @@
 
         <div v-if="page === 'PowerballPage'">
             <div class="page-header">
-                <h1>Powerball coming soon!!!</h1>
+                <p>
+                    The powerball will continue until one or more people guess the correct, randomly generated
+                    numbers! Each round lasts one day.
+                </p>
+                <p>
+                    You buy a ticket for a round. If your numbers are chosen, you win. If nobody wins, the prize money 
+                    rolls over into the next round and the tickets are all removed.
+                </p>
+                <p>
+                    Just like the powerball, you will need to buy a new ticket for each round, in order to win. This 
+                    will continue until a winner is selected! Good luck!!!
+                </p>
+                <div>
+                    <h1 style="color: lawngreen;" v-if="youBoughtPowerballTicket === true">
+                        Congratulations!! You've entered the Powerball!!
+                    </h1>
+                </div>
+                <div v-if="showPowerball" class="row" style="padding: 5% 10%;">
+                    <Powerball  
+                        :lottoType="powerballTypes[0]" 
+                        :timeEnd="lottoTimes[9].dateAndTime"
+                        :ticketsBoughtIncoming="ticketsBought[9]"
+                        :totalTicketsBoughtIncoming="totalTicketsBought[9]"
+                        :totalPlsIncoming="totalPlsList[9]"
+                        :escrowAccountNumIncoming="escrowAccountNum"
+                        :winners="powerballWinnerLists[0]"
+                        @youBoughtPowerball="BoughtPowerball()"
+                        @refreshPowerball="RefreshPowerball()"
+                    />
+                </div>
             </div>
         </div>
         
@@ -102,6 +165,7 @@
 
 <script>
     import Lotto from './components/Lotto_Card.vue';
+    import Powerball from './components/Powerball_Card.vue';
     import HowToPlay from './components/HowToPlay.vue';
     import Disclaimer from './components/Disclaimer.vue';
     
@@ -115,18 +179,22 @@ export default {
             showPage: false,
             pulseChainId: '0x171',
             lottoTimes: null,
-            winnerLists: null,
+            lottoWinnerLists: null,
+            powerballWinnerLists: null,
             lottoTypes: [
                 { id: 1, type: 'Two Minute Lotto' },
                 { id: 2, type: 'Five Minute Lotto' },
                 { id: 3, type: 'Thirty Minute Lotto' },
                 { id: 4, type: 'Hourly Lotto' },
-                { id: 5, type: 'Two Hour Lotto' },
-                { id: 6, type: 'Six Hour Lotto' },
-                { id: 7, type: 'Twelve Hour Lotto' },
+                // { id: 5, type: 'Two Hour Lotto' },
+                // { id: 6, type: 'Six Hour Lotto' },
+                // { id: 7, type: 'Twelve Hour Lotto' },
                 { id: 8, type: 'Daily Lotto' },
                 { id: 9, type: 'Weekly Lotto' },
-                // { id: 10, type: 'Powerball' },
+                // { id: 10, type: 'Daily Powerball' },
+            ],
+            powerballTypes: [
+                { id: 10, type: 'Daily Powerball' },
             ],
             ticketsBought: null,
             totalTicketsBought: null,
@@ -134,10 +202,13 @@ export default {
             winningsTotalPulse: null,
             statistics: null,
             escrowAccountNum: null,
+            youBoughtPowerballTicket: false,
+            youBoughtLottoTicket: false,
         };
     },
   components: {
     Lotto,
+    Powerball,
     HowToPlay,
     Disclaimer,
   },
@@ -150,7 +221,8 @@ export default {
         }
         
         this.GetLottoTimes();
-        this.GetWinnerLists();
+        this.GetLottoWinnerLists();
+        this.GetPowerballWinnerLists();
         this.GetTicketsBought(); // returns an array of 0's if no currentAddress
         this.GetTotalTicketsBought();
         this.GetTotalPlsList();
@@ -162,7 +234,8 @@ export default {
             vm.GetTotalPlsList();
             vm.GetStatistics();
             vm.GetTotalTicketsBought();
-            vm.GetWinnerLists();
+            vm.GetLottoWinnerLists();
+            vm.GetPowerballWinnerLists();
         }, 10000);
         
         setInterval(() => {
@@ -263,17 +336,32 @@ export default {
             return;
         });
     },
-    async GetWinnerLists() {
-        await fetch('api/NotALottery/GetWinnerLists', {
+    async GetLottoWinnerLists() {
+        await fetch('api/NotALottery/GetLottoWinnerLists', {
             method: 'Get',
             headers: { 'Content-type': 'application/json; charset=UTF-8' }
         })
         .then(r => r.json())
         .then(json => {
             if (json.status !== 400) {
-                this.winnerLists = json;
+                this.lottoWinnerLists = json;
             } else {
-                this.winnerLists = null;
+                this.lottoWinnerLists = null;
+            }
+            return;
+        });
+    },
+    async GetPowerballWinnerLists() {
+        await fetch('api/NotALottery/GetPowerballWinnerLists', {
+            method: 'Get',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        })
+        .then(r => r.json())
+        .then(json => {
+            if (json.status !== 400) {
+                this.powerballWinnerLists = json;
+            } else {
+                this.powerballWinnerLists = null;
             }
             return;
         });
@@ -370,12 +458,7 @@ export default {
         this.winningsTotalPulse = 0;
         let payload = { AccountNum: this.currentAddress };
 
-        // eslint-disable-next-line no-undef
-        confetti({
-            particleCount: 5000,
-            spread: 1000,
-            origin: { y: .6 }
-        });
+        this.doConfetti();
 
         await fetch('api/NotALottery/ClaimWinnings', {
             method: 'POST',
@@ -392,12 +475,44 @@ export default {
             return;
         });
     },
+    async BoughtLotto() {
+        let vm = this;
+        this.youBoughtLottoTicket = true;
+        this.doConfetti();
+        setTimeout(() => {
+            vm.youBoughtLottoTicket = false;
+        }, 10000)
+    },
     async RefreshLotto() {
         setTimeout(() => {
-            this.GetWinnerLists();
+            this.GetLottoWinnerLists();
             this.GetTotalTicketsBought();
             this.GetWinnings(this.currentAddress);
         }, 5000)
+    },
+    async BoughtPowerball() {
+        let vm = this;
+        this.youBoughtPowerballTicket = true;
+        this.doConfetti();
+        setTimeout(() => {
+            vm.youBoughtPowerballTicket = false;
+        }, 10000)
+    },
+    async RefreshPowerball() {
+        setTimeout(() => {
+            this.GetPowerballWinnerLists();
+            this.GetTotalTicketsBought();
+            this.GetTotalPlsList();
+            this.GetWinnings(this.currentAddress);
+        }, 5000)
+    },
+    async doConfetti() {
+        // eslint-disable-next-line no-undef
+        confetti({
+            particleCount: 5000,
+            spread: 1000,
+            origin: { y: .6 }
+        });
     },
     reload() {
         window.location.reload();
@@ -424,7 +539,19 @@ export default {
         this.ticketsBought !== null &&
         this.totalTicketsBought !== null &&
         this.totalPlsList !== null &&
-        this.winnerLists !== null &&
+        this.lottoWinnerLists !== undefined &&
+        this.lottoWinnerLists !== null &&
+        this.escrowAccountNum !== null
+      );
+    },
+    showPowerball() {
+      return (
+        this.lottoTypes !== null &&
+        this.lottoTimes !== null &&
+        this.ticketsBought !== null &&
+        this.totalTicketsBought !== null &&
+        this.totalPlsList !== null &&
+        this.powerballWinnerLists !== null &&
         this.escrowAccountNum !== null
       );
     },
@@ -472,13 +599,19 @@ export default {
     display: inline-block;
 }
 .page-header {
-    margin-top: 20vh;
+    margin-top: 30vh;
     padding: 0px 30px;
     color: white;
+}
+.my-navbar-btns {
+    margin: 10px 0px;
 }
 @media (min-width: 768px) { 
     .page-header {
         margin-top: 10vh;
+    }
+    .my-navbar-btns {
+        margin: 0px;
     }
  }
 .connect-btn {

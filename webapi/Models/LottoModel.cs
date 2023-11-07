@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Nethereum.Model;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using webapi.Data;
@@ -13,6 +14,12 @@ namespace webapi.Models
                 .Where(x => x.AddressId == addressId && x.TransactionId == null)
                 .ToListAsync();
 
+            var dailyPowerballWinners = await dbContext.DailyPowerballWinners
+                .Where(x => x.AddressId == addressId && x.TransactionId == null)
+                .ToListAsync();
+
+            long amount = 0;
+
             if (winners != null && winners.Count > 0)
             {
                 foreach (var win in winners)
@@ -21,27 +28,53 @@ namespace webapi.Models
                 }
                 await dbContext.SaveChangesAsync();
 
-                long amount = winners.Sum(x => x.AmountPulse);
+                amount = winners.Sum(x => x.AmountPulse);
+            }
 
+            if (dailyPowerballWinners != null && dailyPowerballWinners.Count > 0)
+            {
+                foreach (var win in dailyPowerballWinners)
+                {
+                    win.TransactionId = "true";
+                }
+                await dbContext.SaveChangesAsync();
+
+                amount = dailyPowerballWinners.Sum(x => x.AmountPulse);
+            }
+
+            if (amount > 0)
+            {
                 var url = "https://rpc.pulsechain.com";
                 var privateKey = dbContext.MyKeys.Where(x => x.Id == 1).Select(x => x.KeyString).FirstOrDefault();
 
-                var account = new Account(privateKey);
+                var account = new Nethereum.Web3.Accounts.Account(privateKey);
                 var web3 = new Web3(account, url);
 
                 var transaction = await web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(addressId, amount);
-                
-                foreach (var win in winners)
+
+                if (winners != null && winners.Count > 0)
                 {
-                    win.TransactionId = transaction.TransactionHash;
+                    foreach (var win in winners)
+                    {
+                        win.TransactionId = transaction.TransactionHash;
+                    }
+                }
+
+                if (dailyPowerballWinners != null && dailyPowerballWinners.Count > 0)
+                {
+                    foreach (var win in dailyPowerballWinners)
+                    {
+                        win.TransactionId = transaction.TransactionHash;
+                    }
                 }
 
                 await dbContext.SaveChangesAsync();
             }
+
             return 0;
         }
 
-        public static async Task<int> BuyTickets(NotALotteryGameAPIDbContext dbContext, TicketOrder ticket, long prizeMultiplier)
+        public static async Task<int> BuyLottoTickets(NotALotteryGameAPIDbContext dbContext, TicketOrder ticket, long prizeMultiplier)
         {
             if (ticket.TicketNum != null && ticket.TicketNum > 0 && !string.IsNullOrWhiteSpace(ticket.AccountNum) && ticket.Type > 0)
             {
@@ -202,5 +235,38 @@ namespace webapi.Models
 
             return 0;
         }
+
+        public static async Task<List<DailyPowerball>> BuyPowerballTicket(NotALotteryGameAPIDbContext dbContext, TicketOrder ticket, long prizeMultiplier)
+        {
+            if (ticket.NumOne != null && ticket.NumOne > 0 && ticket.NumTwo != null && ticket.NumTwo > 0 && ticket.NumThree != null && ticket.NumThree > 0 && !string.IsNullOrWhiteSpace(ticket.AccountNum))
+            {
+                var stats = await dbContext.Statistics.Where(x => x.Id == 1).FirstOrDefaultAsync();
+                //if (stats != null)
+                //{
+                //    stats.TotalNumberPlayers += ticket.TicketNum;
+                //    stats.TotalPrizeMoney += ticket.TicketNum * prizeMultiplier;
+                //}
+
+                //if (stats != null)
+                //    stats.DailyPrizeMoney += ticket.TicketNum * prizeMultiplier;
+
+                var dailyPowerball = new DailyPowerball()
+                {
+                    AddressId = ticket.AccountNum,
+                    NumOne = (int)ticket.NumOne,
+                    NumTwo = (int)ticket.NumTwo,
+                    NumThree = (int)ticket.NumThree,
+                };
+
+                await dbContext.DailyPowerball.AddAsync(dailyPowerball);
+
+                await dbContext.SaveChangesAsync();
+
+                return await dbContext.DailyPowerball.Where(x => x.AddressId == ticket.AccountNum).ToListAsync();
+            }
+
+            return null;
+        }
+
     }
 }

@@ -11,5 +11,6 @@
         public const int TwelveHour     = 7;
         public const int Daily          = 8;
         public const int Weekly         = 9;
+        public const int DailyPowerball = 10;
     }
 }

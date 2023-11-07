@@ -24,5 +24,7 @@ namespace webapi.Data
         public DbSet<Winners> Winners { get; set; }
         public DbSet<Statistics> Statistics { get; set; }
         public DbSet<MyKeys> MyKeys { get; set; }
+        public DbSet<DailyPowerball> DailyPowerball { get; set; }
+        public DbSet<DailyPowerballWinners> DailyPowerballWinners { get; set; }
     }
 }

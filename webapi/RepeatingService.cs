@@ -63,6 +63,10 @@ namespace webapi
                     {
                         RunLotto1(dbContext, LottoTypes.Weekly, times[8]);
                     }
+                    if (times[9].DateAndTime < now)
+                    {
+                        RunPowerball(dbContext, LottoTypes.DailyPowerball, times[9]);
+                    }
 
                     await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
@@ -191,6 +195,24 @@ namespace webapi
                     }
                     ResetTimer(dbContext, LottoTypes.Weekly, time);
                     break;
+                //case LottoTypes.DailyPowerball:
+                //    numTickets = dbContext.DailyPowerball.Count();
+                //    if (numTickets > 0)
+                //    {
+                //        //var winnerInt = rnd.Next(1, numTickets) - 1;
+                //        var num1 = rnd.Next(1, 99);
+                //        var num2 = rnd.Next(1, 99);
+                //        var num3 = rnd.Next(1, 99);
+                //        List<DailyPowerballWinners>? list = dbContext.DailyPowerballWinners
+                //            .Where(x => x.NumTwo == num1 && x.NumTwo == num2 && x.NumThree == num3)
+                //            .ToList();
+                //        if (list != null && list.Count > 0)
+                //        {
+                //            RunPowerball(dbContext, LottoTypes.DailyPowerball, numTickets, num1, num2, num3, list);
+                //        }
+                //    }
+                //    ResetTimer(dbContext, LottoTypes.Weekly, time);
+                //    break;
             }
         }
 
@@ -241,72 +263,150 @@ namespace webapi
             dbContext.SaveChanges();
         }
 
-        private static void ResetTimer(NotALotteryGameAPIDbContext dbContext, int type, LottoTimes time)
+        private static void RunPowerball(NotALotteryGameAPIDbContext dbContext, int type, LottoTimes time)
         {
-            time.DateAndTime = ResetTimerSwitch(time.DateAndTime, type);
+            Random rnd = new Random();
+            var numTickets = dbContext.DailyPowerball.Count();
+
+            if (numTickets > 0)
+            {
+                var num1 = rnd.Next(1, 99);
+                var num2 = rnd.Next(1, 99);
+                var num3 = rnd.Next(1, 99);
+
+                var winners = dbContext.DailyPowerball
+                    .Where(x => x.NumTwo == num1 && x.NumTwo == num2 && x.NumThree == num3)
+                    .ToList();
+
+                var totalPls1 = dbContext.DailyPowerballWinners.Where(x => x.AddressId == null).Select(x => x.AmountPulse).Sum();
+                var totalPls2 = dbContext.DailyPowerball.Count() * prizeMultiplier;
+                long totalPls = totalPls1 + totalPls2;
+
+                if (winners != null && winners.Count > 0)
+                {
+                    long eachWinnerTotal = totalPls / winners.Count;
+
+                    foreach (var winner in winners)
+                    {
+                        var w = new DailyPowerballWinners()
+                        {
+                            AddressId = winner.AddressId,
+                            AmountPulse = Math.Abs(eachWinnerTotal),
+                            DateAndTime = DateTime.Now.AddHours(numHours),
+                            NumOne = num1,
+                            NumTwo = num2,
+                            NumThree = num3,
+                        };
+                        dbContext.DailyPowerballWinners.Add(w);
+                    }
+                    dbContext.SaveChanges();
+                    var winnersToDelete = dbContext.DailyPowerballWinners.Where(x => x.AddressId == null).ToList();
+                    dbContext.DailyPowerballWinners.RemoveRange(winnersToDelete);
+                }
+                else
+                {
+                    var w = new DailyPowerballWinners()
+                    {
+                        AddressId = null,
+                        AmountPulse = Math.Abs(totalPls),
+                        DateAndTime = DateTime.Now.AddHours(numHours),
+                        NumOne = num1,
+                        NumTwo = num2,
+                        NumThree = num3,
+                    };
+                    dbContext.DailyPowerballWinners.Add(w);
+                }
+            }
+            else
+            {
+                var num1 = rnd.Next(1, 99);
+                var num2 = rnd.Next(1, 99);
+                var num3 = rnd.Next(1, 99);
+
+                var w = new DailyPowerballWinners()
+                {
+                    AddressId = null,
+                    AmountPulse = 0,
+                    DateAndTime = DateTime.Now.AddHours(numHours),
+                    NumOne = num1,
+                    NumTwo = num2,
+                    NumThree = num3,
+                };
+                dbContext.DailyPowerballWinners.Add(w);
+            }
+
+            dbContext.DailyPowerball.ExecuteDelete();
             dbContext.SaveChanges();
+
+            ResetTimer(dbContext, LottoTypes.DailyPowerball, time);
         }
 
-        private static DateTime ResetTimerSwitch(DateTime dt, int type)
+        private static void ResetTimer(NotALotteryGameAPIDbContext dbContext, int type, LottoTimes time)
         {
             switch (type)
             {
                 case LottoTypes.TwoMinute:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddMinutes(2);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddMinutes(2);
                     }
                     break;
                 case LottoTypes.FiveMinute:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddMinutes(5);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddMinutes(5);
                     }
                     break;
                 case LottoTypes.ThirtyMinute:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddMinutes(30);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddMinutes(30);
                     }
                     break;
                 case LottoTypes.OneHour:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddHours(1);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddHours(1);
                     }
                     break;
                 case LottoTypes.TwoHour:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddHours(2);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddHours(2);
                     }
                     break;
                 case LottoTypes.SixHour:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddHours(6);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddHours(6);
                     }
                     break;
                 case LottoTypes.TwelveHour:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddHours(12);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddHours(12);
                     }
                     break;
                 case LottoTypes.Daily:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddDays(1);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddDays(1);
                     }
                     break;
                 case LottoTypes.Weekly:
-                    if (dt < DateTime.Now.AddHours(numHours))
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
                     {
-                        dt = dt.AddDays(7);
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddDays(7);
+                    }
+                    break;
+                case LottoTypes.DailyPowerball:
+                    if (time.DateAndTime < DateTime.Now.AddHours(numHours))
+                    {
+                        time.DateAndTime = DateTime.Now.AddHours(numHours).AddDays(1);
                     }
                     break;
             }
-            return dt;
+            dbContext.SaveChanges();
         }
 
     }
